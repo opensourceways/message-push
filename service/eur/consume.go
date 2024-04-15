@@ -1,4 +1,4 @@
-package push
+package eur
 
 import (
 	"github.com/IBM/sarama"

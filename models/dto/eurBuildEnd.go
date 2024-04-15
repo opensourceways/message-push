@@ -1,9 +1,11 @@
-package event
+package dto
 
 import (
 	"encoding/json"
 	"fmt"
 	cloudevents "github.com/cloudevents/sdk-go/v2"
+	"message-push/common/postgresql"
+	"message-push/models/bo"
 	"message-push/models/do"
 	"strconv"
 	"time"
@@ -121,4 +123,31 @@ func (event EurBuildEvent) Message() ([]byte, error) {
 
 func (raw *EurBuildRaw) Message() ([]byte, error) {
 	return json.Marshal(raw)
+}
+
+func (event EurBuildEvent) GetSubscribe() []bo.SubscribePushConfig {
+	var subscribePushConfigs []bo.SubscribePushConfig
+	postgresql.DB().Table("message_center.cloud_event_message").Raw(
+		`select sc.data_schema,
+       sc.event_type,
+       sc.spec_version,
+       sc.mode_filter,
+       json_agg(
+               json_build_object('push_type', pc.push_type, 'push_address', pc.push_address)
+       ) push_configs
+
+from message_center.push_config pc
+         join message_center.subscribe_config sc on pc.subscribe_id = sc.id
+    and pc.is_deleted is false and sc.is_deleted = false
+where sc.event_type = ?
+  and sc.data_schema = ?
+  and sc.spec_version = ?
+group by sc.data_schema,
+         sc.event_type,
+         sc.spec_version,
+         sc.mode_filter`,
+		event.Type(), event.DataSchema(), "0.0.1",
+	).Scan(&subscribePushConfigs)
+
+	return subscribePushConfigs
 }

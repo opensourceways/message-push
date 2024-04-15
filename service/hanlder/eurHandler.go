@@ -1,12 +1,15 @@
 package hanlder
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/IBM/sarama"
 	"github.com/opensourceways/kafka-lib/mq"
+	"github.com/sirupsen/logrus"
 	"message-push/common/postgresql"
-	"message-push/models/event"
+	"message-push/models/bo"
+	"message-push/models/dto"
 	"message-push/models/messageadapter"
 )
 
@@ -34,7 +37,7 @@ func (h EurGroupHandler) ConsumeClaim(session sarama.ConsumerGroupSession, claim
 		if err != nil {
 			return err
 		}
-		var eurBuildEvent event.EurBuildEvent
+		var eurBuildEvent dto.EurBuildEvent
 
 		msgBodyErr := json.Unmarshal(msg.Body, &eurBuildEvent)
 		if msgBodyErr != nil {
@@ -42,21 +45,34 @@ func (h EurGroupHandler) ConsumeClaim(session sarama.ConsumerGroupSession, claim
 		}
 		fmt.Printf("Received message with offset %d: %s\n", message.Offset, eurBuildEvent)
 
-		transferErr := publishEurEvent(eurBuildEvent)
-		if transferErr != nil {
-			return transferErr
-		}
+		publishEurEvent(eurBuildEvent)
 		session.MarkMessage(message, "")
 	}
 	return nil
 }
 
-func publishEurEvent(event event.EurBuildEvent) error {
-	messageadapter.SendHWCloudMessage(&event)
-	return nil
+func publishEurEvent(event dto.EurBuildEvent) {
+	subscribes := event.GetSubscribe()
+	fmt.Println(subscribes)
+	for _, subscribe := range subscribes {
+		var cfg []bo.PushConfig
+		json.Unmarshal(subscribe.PushConfigs, &cfg)
+		for _, push := range cfg {
+			switch push.PushType {
+			case "phone":
+				context.TODO()
+			case "message":
+				messageadapter.SendHWCloudMessage(&event, push.PushAddress)
+			case "api":
+				context.TODO()
+			default:
+				logrus.Info("不支持的推送类型:", push.PushType)
+			}
+		}
+	}
 }
 
-func save(raw event.EurBuildRaw) {
+func save(raw dto.EurBuildRaw) {
 	do := raw.ToCloudEventDO()
 	res := postgresql.DB().Table("message_center.cloud_event_message").Create(&do)
 	fmt.Println(res)

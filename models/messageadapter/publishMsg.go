@@ -8,14 +8,14 @@ import (
 	core "huaweicloud.com/apig/signer"
 	"io/ioutil"
 	"message-push/common/pushSdk"
-	"message-push/models/event"
+	"message-push/models/dto"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
 )
 
-func SendHWCloudMessage(eurBuildEvent *event.EurBuildEvent) {
+func SendHWCloudMessage(eurBuildEvent *dto.EurBuildEvent, phoneNum string) {
 	msgConfig := pushSdk.NewTestConfig()
 	//必填,请参考"开发准备"获取如下数据,替换为实际值
 	appInfo := core.Signer{
@@ -32,11 +32,11 @@ func SendHWCloudMessage(eurBuildEvent *event.EurBuildEvent) {
 	signature := msgConfig.Signature //签名名称
 
 	//必填,全局号码格式(包含国家码),示例:+86151****6789,多个号码之间用英文逗号分隔
-	receiver := msgConfig.Receiver //短信接收人号码
+	receiver := phoneNum //短信接收人号码
 
 	//选填,短信状态报告接收地址,推荐使用域名,为空或者不填表示不接收状态报告
 	statusCallBack := ""
-	var eurBuildRaw event.EurBuildRaw
+	var eurBuildRaw dto.EurBuildRaw
 
 	json.Unmarshal(eurBuildEvent.Data(), &eurBuildRaw)
 

@@ -8,7 +8,7 @@ import (
 	"message-push/common/kafka"
 	"message-push/common/postgresql"
 	"message-push/config"
-	"message-push/service/push"
+	"message-push/service/eur"
 	"os"
 	"os/signal"
 	"syscall"
@@ -61,7 +61,7 @@ func main() {
 	}
 
 	go func() {
-		push.ConsumeEur()
+		eur.ConsumeEur()
 	}()
 	<-sig
 }
