@@ -1,0 +1,26 @@
+create table subscribe_config
+(
+    id           integer default nextval('message_center.subscrbe_config_id_seq'::regclass) not null
+        constraint subscrbe_config_pk
+            primary key,
+    data_schema  text                                                                       not null,
+    event_type   text,
+    spec_version text,
+    mode_filter  jsonb,
+    created_at   timestamp,
+    updated_at   timestamp,
+    is_deleted   boolean
+);
+
+comment on column subscribe_config.data_schema is '消息源';
+
+comment on column subscribe_config.event_type is '事件类型';
+
+comment on column subscribe_config.spec_version is '版本';
+
+alter table subscribe_config
+    owner to postgres;
+
+create index subscribe_config_event_index
+    on subscribe_config (data_schema, event_type, spec_version);
+
