@@ -3,7 +3,6 @@ package messageadapter
 import (
 	"bytes"
 	"crypto/tls"
-	"encoding/json"
 	"fmt"
 	core "huaweicloud.com/apig/signer"
 	"io/ioutil"
@@ -15,7 +14,7 @@ import (
 	"strings"
 )
 
-func SendHWCloudMessage(eurBuildEvent *dto.EurBuildEvent, phoneNum string) {
+func SendHWCloudMessage(eurBuildRaw *dto.EurBuildRaw, phoneNum string) {
 	msgConfig := pushSdk.NewTestConfig()
 	//必填,请参考"开发准备"获取如下数据,替换为实际值
 	appInfo := core.Signer{
@@ -36,9 +35,6 @@ func SendHWCloudMessage(eurBuildEvent *dto.EurBuildEvent, phoneNum string) {
 
 	//选填,短信状态报告接收地址,推荐使用域名,为空或者不填表示不接收状态报告
 	statusCallBack := ""
-	var eurBuildRaw dto.EurBuildRaw
-
-	json.Unmarshal(eurBuildEvent.Data(), &eurBuildRaw)
 
 	/*
 	 * 选填,使用无变量模板时请赋空值 string templateParas = "";

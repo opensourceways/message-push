@@ -2,12 +2,12 @@ package dto
 
 import (
 	"encoding/json"
-	"fmt"
+	flattener "github.com/anshal21/json-flattener"
 	cloudevents "github.com/cloudevents/sdk-go/v2"
+	"github.com/go-playground/validator/v10"
+	"gorm.io/datatypes"
 	"message-push/common/postgresql"
 	"message-push/models/bo"
-	"message-push/models/do"
-	"strconv"
 	"time"
 )
 
@@ -80,43 +80,6 @@ type EurBuildEvent struct {
 	cloudevents.Event
 }
 
-func (raw *EurBuildRaw) ToCloudEvent() EurBuildEvent {
-	event := cloudevents.NewEvent()
-	event.SetID(raw.ID)
-	event.SetSource(
-		"https://eur.openeuler.openatom.cn/coprs/" + raw.Body.Owner + "/" + raw.Body.Pkg + "/build/" + strconv.Itoa(raw.Body.Build),
-	)
-	event.SetType("state:change")
-	event.SetTime(time.Now())
-	event.SetDataContentType("application/json")
-	event.SetDataSchema("eur:build_task")
-	event.SetSpecVersion("0.0.1")
-	err := event.SetData(cloudevents.ApplicationJSON, raw)
-	if err != nil {
-		return EurBuildEvent{}
-
-	}
-	return EurBuildEvent{event}
-}
-
-func (raw *EurBuildRaw) ToCloudEventDO() do.MessageCloudEventDO {
-	jsons, errs := json.Marshal(raw) //转换成JSON返回的是byte[]
-	if errs != nil {
-		fmt.Println(errs.Error())
-	}
-	messageCloudEventDO := do.MessageCloudEventDO{
-		Source:          "https://eur.openeuler.openatom.cn/coprs/" + raw.Body.Owner + "/" + raw.Body.Pkg + "/build/" + strconv.Itoa(raw.Body.Build),
-		Time:            time.Now(),
-		EventType:       "state:change",
-		SpecVersion:     "0.0.1",
-		DataSchema:      "eur:build_task",
-		DataContentType: "application/json",
-		EventId:         raw.ID,
-		DataJson:        jsons,
-	}
-	return messageCloudEventDO
-}
-
 func (event EurBuildEvent) Message() ([]byte, error) {
 	return json.Marshal(event)
 }
@@ -125,7 +88,33 @@ func (raw *EurBuildRaw) Message() ([]byte, error) {
 	return json.Marshal(raw)
 }
 
+func (raw *EurBuildRaw) ModeFilter(modeFilterJson datatypes.JSON) bool {
+	s, _ := json.Marshal(raw)
+	flatJSON, _ := flattener.FlattenJSON(string(s), flattener.DotSeparator)
+
+	flatMap := make(map[string]string)
+	json.Unmarshal([]byte(flatJSON), &flatMap)
+
+	modeFilterMap := make(map[string]string)
+
+	json.Unmarshal(modeFilterJson, &modeFilterMap)
+	validate := validator.New()
+
+	for k, v := range modeFilterMap {
+		err := validate.Var(flatMap[k], v)
+		if err != nil {
+			return false
+		}
+	}
+	return true
+}
+
 func (event EurBuildEvent) GetSubscribe() []bo.SubscribePushConfig {
+	subscribePushConfigs := getSubscribeFromDB(event)
+	return subscribePushConfigs
+}
+
+func getSubscribeFromDB(event EurBuildEvent) []bo.SubscribePushConfig {
 	var subscribePushConfigs []bo.SubscribePushConfig
 	postgresql.DB().Table("message_center.cloud_event_message").Raw(
 		`select sc.data_schema,
@@ -141,13 +130,12 @@ from message_center.push_config pc
     and pc.is_deleted is false and sc.is_deleted = false
 where sc.event_type = ?
   and sc.data_schema = ?
-  and sc.spec_version = ?
+  and sc.spec_version  = ?
 group by sc.data_schema,
          sc.event_type,
          sc.spec_version,
          sc.mode_filter`,
-		event.Type(), event.DataSchema(), "0.0.1",
+		event.Type(), event.DataSchema(), event.SpecVersion(),
 	).Scan(&subscribePushConfigs)
-
 	return subscribePushConfigs
 }
