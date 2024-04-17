@@ -48,7 +48,7 @@ func (raw *EurBuildRaw) ToCloudEvent() EurBuildEvent {
 		"https://eur.openeuler.openatom.cn/coprs/" + raw.Body.Owner + "/" + raw.Body.Pkg + "/build/" + strconv.Itoa(raw.Body.Build),
 	)
 	event.SetType("state:change")
-	event.SetTime(time.Now())
+	event.SetTime(raw.Headers.SentAt)
 	event.SetDataContentType("application/json")
 	event.SetDataSchema("eur:build_task")
 	event.SetSpecVersion("1.0")
@@ -59,19 +59,19 @@ func (raw *EurBuildRaw) ToCloudEvent() EurBuildEvent {
 	return EurBuildEvent{event}
 }
 
-func (raw *EurBuildRaw) ToCloudEventDO() do.MessageCloudEventDO {
-	jsons, errs := json.Marshal(raw) //转换成JSON返回的是byte[]
+func (event *EurBuildEvent) ToCloudEventDO() do.MessageCloudEventDO {
+	jsons, errs := json.Marshal(event.Data()) //转换成JSON返回的是byte[]
 	if errs != nil {
 		fmt.Println(errs.Error())
 	}
 	messageCloudEventDO := do.MessageCloudEventDO{
-		Source:          "https://eur.openeuler.openatom.cn/coprs/" + raw.Body.Owner + "/" + raw.Body.Pkg + "/build/" + strconv.Itoa(raw.Body.Build),
-		Time:            time.Now(),
-		EventType:       "state:change",
-		SpecVersion:     "1.0",
-		DataSchema:      "eur:build_task",
-		DataContentType: "application/json",
-		EventId:         raw.ID,
+		Source:          event.Source(),
+		Time:            event.Time(),
+		EventType:       event.Type(),
+		SpecVersion:     event.SpecVersion(),
+		DataSchema:      event.DataSchema(),
+		DataContentType: event.DataContentType(),
+		EventId:         event.ID(),
 		DataJson:        jsons,
 	}
 	return messageCloudEventDO

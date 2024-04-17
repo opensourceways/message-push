@@ -13,25 +13,17 @@ func Handle(payload []byte, _ map[string]string) error {
 	if msgBodyErr != nil {
 		return msgBodyErr
 	}
-	transferErr := publishEurEvent(raw)
-	if transferErr != nil {
-		return transferErr
-	}
-	save(raw)
-	return nil
-}
-
-func publishEurEvent(raw dto.EurBuildRaw) error {
 	eurBuildEvent := raw.ToCloudEvent()
-	sendErr := kafka.SendMsg("eur_build_event", &eurBuildEvent)
-	if sendErr != nil {
-		return sendErr
+	kafkaSendErr := kafka.SendMsg("eur_build_event", &eurBuildEvent)
+	if kafkaSendErr != nil {
+		return kafkaSendErr
 	}
+	save(eurBuildEvent)
 	return nil
 }
 
-func save(raw dto.EurBuildRaw) {
-	do := raw.ToCloudEventDO()
+func save(event dto.EurBuildEvent) {
+	do := event.ToCloudEventDO()
 	if postgresql.DB().Model(&do).Where("event_id = ?", do.EventId).Updates(&do).RowsAffected == 0 {
 		postgresql.DB().Create(&do)
 	}

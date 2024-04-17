@@ -26,7 +26,6 @@ func main() {
 	defer kafka.Exit()
 	if err := postgresql.Init(&cfg.Postgresql, false); err != nil {
 		logrus.Errorf("init postgresql failed, err:%s", err.Error())
-
 		return
 	}
 
