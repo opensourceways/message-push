@@ -5,6 +5,7 @@ import (
 	flattener "github.com/anshal21/json-flattener"
 	cloudevents "github.com/cloudevents/sdk-go/v2"
 	"github.com/go-playground/validator/v10"
+	"github.com/todocoder/go-stream/stream"
 	"gorm.io/datatypes"
 	"message-push/common/postgresql"
 	"message-push/models/bo"
@@ -58,7 +59,11 @@ func (raw *EurBuildRaw) ToCloudEvent() EurBuildEvent {
 	return EurBuildEvent{event}
 }
 
-func (event *EurBuildEvent) ToCloudEventDO() do.MessageCloudEventDO {
+type EurBuildEvent struct {
+	cloudevents.Event
+}
+
+func (event EurBuildEvent) ToCloudEventDO() do.MessageCloudEventDO {
 	messageCloudEventDO := do.MessageCloudEventDO{
 		Source:          event.Source(),
 		Time:            event.Time(),
@@ -70,10 +75,6 @@ func (event *EurBuildEvent) ToCloudEventDO() do.MessageCloudEventDO {
 		DataJson:        event.Data(),
 	}
 	return messageCloudEventDO
-}
-
-type EurBuildEvent struct {
-	cloudevents.Event
 }
 
 func (event EurBuildEvent) Message() ([]byte, error) {
@@ -104,7 +105,13 @@ func (raw *EurBuildRaw) ModeFilter(modeFilterJson datatypes.JSON) bool {
 
 func (event EurBuildEvent) GetSubscribe() []bo.SubscribePushConfig {
 	subscribePushConfigs := getSubscribeFromDB(event)
-	return subscribePushConfigs
+	var eurBuildRaw EurBuildRaw
+	_ = json.Unmarshal(event.Data(), &eurBuildRaw)
+	return stream.Of(subscribePushConfigs...).Filter(
+		func(item bo.SubscribePushConfig) bool {
+			return eurBuildRaw.ModeFilter(item.ModeFilter)
+		},
+	).ToSlice()
 }
 
 func getSubscribeFromDB(event EurBuildEvent) []bo.SubscribePushConfig {

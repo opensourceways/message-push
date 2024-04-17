@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/sirupsen/logrus"
-	"github.com/todocoder/go-stream/stream"
 	"message-push/common/pushSdk"
 	"message-push/models/bo"
 	"message-push/models/dto"
@@ -25,28 +24,22 @@ func publishMessage(event dto.EurBuildEvent) {
 	var eurBuildRaw dto.EurBuildRaw
 	_ = json.Unmarshal(event.Data(), &eurBuildRaw)
 	subscribes := event.GetSubscribe()
-	stream.Of(subscribes...).Filter(
-		func(item bo.SubscribePushConfig) bool {
-			return eurBuildRaw.ModeFilter(item.ModeFilter)
-		},
-	).ForEach(
-		func(subscribe bo.SubscribePushConfig) {
-			var cfg []bo.PushConfig
-			_ = json.Unmarshal(subscribe.PushConfigs, &cfg)
-			for _, push := range cfg {
-				switch push.PushType {
-				case "phone":
-					context.TODO()
-				case "message":
-					sendHWCloudMessage(eurBuildRaw, push)
-				case "api":
-					context.TODO()
-				default:
-					logrus.Info("不支持的推送类型:", push.PushType)
-				}
+	for _, subscribe := range subscribes {
+		var cfg []bo.PushConfig
+		_ = json.Unmarshal(subscribe.PushConfigs, &cfg)
+		for _, push := range cfg {
+			switch push.PushType {
+			case "phone":
+				context.TODO()
+			case "message":
+				sendHWCloudMessage(eurBuildRaw, push)
+			case "api":
+				context.TODO()
+			default:
+				logrus.Info("不支持的推送类型:", push.PushType)
 			}
-		},
-	)
+		}
+	}
 }
 
 func sendHWCloudMessage(eurBuildRaw dto.EurBuildRaw, push bo.PushConfig) {
