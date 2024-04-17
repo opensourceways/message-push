@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	kfklib "github.com/opensourceways/kafka-lib/agent"
 	"github.com/opensourceways/server-common-lib/logrusutil"
 	liboptions "github.com/opensourceways/server-common-lib/options"
 	"github.com/sirupsen/logrus"
@@ -60,11 +61,13 @@ func main() {
 		return
 	}
 
+	defer kfklib.Exit()
+
 	go func() {
-		service.ConsumeEurBuildPush()
+		service.SubscribeEurRaw()
 	}()
 	go func() {
-		service.ConsumeEurBuildTransfer()
+		service.SubscribeEurEvent()
 	}()
 	<-sig
 }
