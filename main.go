@@ -3,7 +3,6 @@ package main
 import (
 	kfklib "github.com/opensourceways/kafka-lib/agent"
 	"github.com/opensourceways/server-common-lib/logrusutil"
-	liboptions "github.com/opensourceways/server-common-lib/options"
 	"github.com/sirupsen/logrus"
 	"message-push/common/kafka"
 	"message-push/common/postgresql"
@@ -13,15 +12,6 @@ import (
 	"os/signal"
 	"syscall"
 )
-
-type options struct {
-	service     liboptions.ServiceOptions
-	enableDebug bool
-}
-
-func (o *options) Validate() error {
-	return o.service.Validate()
-}
 
 func main() {
 	sig := make(chan os.Signal, 1)
