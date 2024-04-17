@@ -3,7 +3,7 @@ Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved
 */
 
 // Package messageadapter provides an adapter for working with message-related functionality.
-package messageadapter
+package kafka
 
 import (
 	"fmt"
@@ -14,8 +14,12 @@ import (
 // sendMsg is a method on the messageAdapter struct that takes an EventMessage
 // and sends it to the ModelCreate topic.
 
-func SendKafkaMsg(topic string, e message.EventMessage) error {
-	body, err := e.Message()
+func SendMsg(topic string, e message.EventMessage) error {
+	return send(topic, e)
+}
+
+func send(topic string, v message.EventMessage) error {
+	body, err := v.Message()
 	if err != nil {
 		return err
 	}

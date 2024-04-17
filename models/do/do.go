@@ -21,7 +21,7 @@ type MessageCloudEventDO struct {
 }
 
 func (m *MessageCloudEventDO) TableName() string {
-	return "cloud_event_message"
+	return "message_center.cloud_event_message"
 }
 
 type SubScribeConfigDO struct {

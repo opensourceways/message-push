@@ -8,7 +8,7 @@ import (
 	"message-push/common/kafka"
 	"message-push/common/postgresql"
 	"message-push/config"
-	"message-push/service/eur"
+	"message-push/service"
 	"os"
 	"os/signal"
 	"syscall"
@@ -61,20 +61,16 @@ func main() {
 	}
 
 	go func() {
-		eur.ConsumeEur()
+		service.ConsumeEurBuildPush()
+	}()
+	go func() {
+		service.ConsumeEurBuildTransfer()
 	}()
 	<-sig
 }
 
 func initConfig(cfg *config.Config) {
-	pgCfg := postgresql.Config{
-		Host: "0.0.0.0",
-		User: "postgres",
-		Port: 5432,
-		Pwd:  "123456",
-		Name: "postgres",
-		Life: 1000,
-	}
+	pgCfg := postgresql.NewTestConfig()
 	pgCfg.SetDefault()
 	cfg.Postgresql = pgCfg
 }

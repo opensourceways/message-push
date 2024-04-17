@@ -12,6 +12,6 @@ type HWCloudMsgConfig struct {
 
 func NewTestConfig() HWCloudMsgConfig {
 	return HWCloudMsgConfig{
-		//自己写 保密
+		//自己写
 	}
 }

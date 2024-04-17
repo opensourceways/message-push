@@ -2,12 +2,15 @@ package dto
 
 import (
 	"encoding/json"
+	"fmt"
 	flattener "github.com/anshal21/json-flattener"
 	cloudevents "github.com/cloudevents/sdk-go/v2"
 	"github.com/go-playground/validator/v10"
 	"gorm.io/datatypes"
 	"message-push/common/postgresql"
 	"message-push/models/bo"
+	"message-push/models/do"
+	"strconv"
 	"time"
 )
 
@@ -38,42 +41,40 @@ type EurBuildRaw struct {
 	Topic string      `json:"topic"`
 }
 
-func NewEurBuildRaw() EurBuildRaw {
-	EurBuildJSON := `{
-  "body": {
-    "build": 7279434,
-    "chroot": "fedora-39-x86_64",
-    "copr": "cran",
-    "ip": "2620:52:3:1:dead:beef:cafe:c156",
-    "owner": "iucar",
-    "pid": 1961158,
-    "pkg": "R-CRAN-shortIRT",
-    "status": 3,
-    "user": "iucar",
-    "version": "0.1.3-1.copr7279434",
-    "what": "build start: user:iucar copr:cran pkg:R-CRAN-shortIRT build:7279434 ip:2620:52:3:1:dead:beef:cafe:c156 pid:1961158",
-    "who": "backend.worker-rpm_build_worker:7279434-fedora-39-x86_64"
-  },
-  "headers": {
-    "fedora_messaging_schema": "copr.build.start",
-    "fedora_messaging_severity": 20,
-    "fedora_messaging_user_iucar": true,
-    "priority": 0,
-    "sent-at": "2024-04-09T07:44:31+00:00"
-  },
-  "id": "d4b3c30c-c7f4-454a-ab0b-def09796bd90",
-  "queue": null,
-  "topic": "org.fedoraproject.prod.copr.build.start"
-}`
-
-	var raw EurBuildRaw
-
-	err := json.Unmarshal([]byte(EurBuildJSON), &raw)
+func (raw *EurBuildRaw) ToCloudEvent() EurBuildEvent {
+	event := cloudevents.NewEvent()
+	event.SetID(raw.ID)
+	event.SetSource(
+		"https://eur.openeuler.openatom.cn/coprs/" + raw.Body.Owner + "/" + raw.Body.Pkg + "/build/" + strconv.Itoa(raw.Body.Build),
+	)
+	event.SetType("state:change")
+	event.SetTime(time.Now())
+	event.SetDataContentType("application/json")
+	event.SetDataSchema("eur:build_task")
+	event.SetSpecVersion("1.0")
+	err := event.SetData(cloudevents.ApplicationJSON, raw)
 	if err != nil {
-		return EurBuildRaw{}
+		return EurBuildEvent{}
 	}
+	return EurBuildEvent{event}
+}
 
-	return raw
+func (raw *EurBuildRaw) ToCloudEventDO() do.MessageCloudEventDO {
+	jsons, errs := json.Marshal(raw) //转换成JSON返回的是byte[]
+	if errs != nil {
+		fmt.Println(errs.Error())
+	}
+	messageCloudEventDO := do.MessageCloudEventDO{
+		Source:          "https://eur.openeuler.openatom.cn/coprs/" + raw.Body.Owner + "/" + raw.Body.Pkg + "/build/" + strconv.Itoa(raw.Body.Build),
+		Time:            time.Now(),
+		EventType:       "state:change",
+		SpecVersion:     "1.0",
+		DataSchema:      "eur:build_task",
+		DataContentType: "application/json",
+		EventId:         raw.ID,
+		DataJson:        jsons,
+	}
+	return messageCloudEventDO
 }
 
 type EurBuildEvent struct {
@@ -93,13 +94,10 @@ func (raw *EurBuildRaw) ModeFilter(modeFilterJson datatypes.JSON) bool {
 	flatJSON, _ := flattener.FlattenJSON(string(s), flattener.DotSeparator)
 
 	flatMap := make(map[string]string)
-	json.Unmarshal([]byte(flatJSON), &flatMap)
-
+	_ = json.Unmarshal([]byte(flatJSON), &flatMap)
 	modeFilterMap := make(map[string]string)
-
-	json.Unmarshal(modeFilterJson, &modeFilterMap)
+	_ = json.Unmarshal(modeFilterJson, &modeFilterMap)
 	validate := validator.New()
-
 	for k, v := range modeFilterMap {
 		err := validate.Var(flatMap[k], v)
 		if err != nil {

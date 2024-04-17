@@ -1,4 +1,4 @@
-package messageadapter
+package pushSdk
 
 import (
 	"bytes"
@@ -6,16 +6,12 @@ import (
 	"fmt"
 	core "huaweicloud.com/apig/signer"
 	"io/ioutil"
-	"message-push/common/pushSdk"
-	"message-push/models/dto"
 	"net/http"
 	"net/url"
-	"strconv"
 	"strings"
 )
 
-func SendHWCloudMessage(eurBuildRaw *dto.EurBuildRaw, phoneNum string) {
-	msgConfig := pushSdk.NewTestConfig()
+func SendHWCloudMessage(msgConfig HWCloudMsgConfig, templateParas []string, phoneNum string) {
 	//必填,请参考"开发准备"获取如下数据,替换为实际值
 	appInfo := core.Signer{
 		// 认证用的appKey和appSecret硬编码到代码中或者明文存储都有很大的安全风险，建议在配置文件或者环境变量中密文存放，使用时解密，确保安全；
@@ -43,17 +39,10 @@ func SendHWCloudMessage(eurBuildRaw *dto.EurBuildRaw, phoneNum string) {
 	 * 模板中的每个变量都必须赋值，且取值不能为空
 	 * 查看更多模板规范和变量规范:产品介绍>短信模板须知和短信变量须知
 	 */
-	templateParas1 := [5]string{
-		strconv.Itoa(eurBuildRaw.Body.Build),
-		"success",
-		eurBuildRaw.Body.Owner,
-		eurBuildRaw.Body.Copr,
-		strconv.Itoa(eurBuildRaw.Body.Build),
-	}
-	templateParas := "[\"" + strings.Join(templateParas1[:], "\",\"") + "\"]"
-	fmt.Println(templateParas)
 
-	body := buildRequestBody(sender, receiver, templateId, templateParas, statusCallBack, signature)
+	templateParasString := "[\"" + strings.Join(templateParas[:], "\",\"") + "\"]"
+
+	body := buildRequestBody(sender, receiver, templateId, templateParasString, statusCallBack, signature)
 	resp, _ := post(apiAddress, []byte(body), appInfo)
 	fmt.Println(resp)
 }

@@ -1,4 +1,4 @@
-package hanlder
+package push
 
 import (
 	"context"
@@ -8,29 +8,23 @@ import (
 	"github.com/opensourceways/kafka-lib/mq"
 	"github.com/sirupsen/logrus"
 	"github.com/todocoder/go-stream/stream"
+	"message-push/common/pushSdk"
 	"message-push/models/bo"
 	"message-push/models/dto"
-	"message-push/models/messageadapter"
+	"strconv"
 )
 
-type EurHandler struct{}
+type EurBuildPushHandler struct{}
 
-func (eurHandler *EurHandler) handle(message []byte) error {
-	fmt.Println(message)
+func (h EurBuildPushHandler) Setup(_ sarama.ConsumerGroupSession) error {
 	return nil
 }
 
-type EurGroupHandler struct{}
-
-func (h EurGroupHandler) Setup(_ sarama.ConsumerGroupSession) error {
+func (h EurBuildPushHandler) Cleanup(_ sarama.ConsumerGroupSession) error {
 	return nil
 }
 
-func (h EurGroupHandler) Cleanup(_ sarama.ConsumerGroupSession) error {
-	return nil
-}
-
-func (h EurGroupHandler) ConsumeClaim(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
+func (h EurBuildPushHandler) ConsumeClaim(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	for message := range claim.Messages() {
 		var msg mq.Message
 		err := json.Unmarshal(message.Value, &msg)
@@ -38,13 +32,11 @@ func (h EurGroupHandler) ConsumeClaim(session sarama.ConsumerGroupSession, claim
 			return err
 		}
 		var eurBuildEvent dto.EurBuildEvent
-
 		msgBodyErr := json.Unmarshal(msg.Body, &eurBuildEvent)
 		if msgBodyErr != nil {
 			return err
 		}
 		fmt.Printf("Received message with offset %d: %s\n", message.Offset, eurBuildEvent)
-
 		publishEurEvent(eurBuildEvent)
 		session.MarkMessage(message, "")
 	}
@@ -53,8 +45,7 @@ func (h EurGroupHandler) ConsumeClaim(session sarama.ConsumerGroupSession, claim
 
 func publishEurEvent(event dto.EurBuildEvent) {
 	var eurBuildRaw dto.EurBuildRaw
-
-	json.Unmarshal(event.Data(), &eurBuildRaw)
+	_ = json.Unmarshal(event.Data(), &eurBuildRaw)
 	subscribes := event.GetSubscribe()
 	stream.Of(subscribes...).Filter(
 		func(item bo.SubscribePushConfig) bool {
@@ -63,13 +54,13 @@ func publishEurEvent(event dto.EurBuildEvent) {
 	).ForEach(
 		func(subscribe bo.SubscribePushConfig) {
 			var cfg []bo.PushConfig
-			json.Unmarshal(subscribe.PushConfigs, &cfg)
+			_ = json.Unmarshal(subscribe.PushConfigs, &cfg)
 			for _, push := range cfg {
 				switch push.PushType {
 				case "phone":
 					context.TODO()
 				case "message":
-					messageadapter.SendHWCloudMessage(&eurBuildRaw, push.PushAddress)
+					sendHWCloudMessage(eurBuildRaw, push)
 				case "api":
 					context.TODO()
 				default:
@@ -78,4 +69,16 @@ func publishEurEvent(event dto.EurBuildEvent) {
 			}
 		},
 	)
+}
+
+func sendHWCloudMessage(eurBuildRaw dto.EurBuildRaw, push bo.PushConfig) {
+	masConfig := pushSdk.NewTestConfig()
+	templateParas := []string{
+		strconv.Itoa(eurBuildRaw.Body.Build),
+		"success",
+		eurBuildRaw.Body.Owner,
+		eurBuildRaw.Body.Copr,
+		strconv.Itoa(eurBuildRaw.Body.Build),
+	}
+	pushSdk.SendHWCloudMessage(masConfig, templateParas, push.PushAddress)
 }

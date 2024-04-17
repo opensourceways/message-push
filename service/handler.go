@@ -1,4 +1,4 @@
-package hanlder
+package service
 
 // Handler
 type Handler interface {

@@ -24,6 +24,18 @@ type Config struct {
 	Code    errorCode `json:"error_code"`
 }
 
+func NewTestConfig() Config {
+	pgCfg := Config{
+		Host: "0.0.0.0",
+		User: "postgres",
+		Port: 5432,
+		Pwd:  "123456",
+		Name: "postgres",
+		Life: 1000,
+	}
+	return pgCfg
+}
+
 // SetDefault sets the default values for the Config.
 func (p *Config) SetDefault() {
 	if p.MaxConn <= 0 {
