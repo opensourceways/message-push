@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	kfklib "github.com/opensourceways/kafka-lib/agent"
 	"github.com/opensourceways/server-common-lib/logrusutil"
 	liboptions "github.com/opensourceways/server-common-lib/options"
@@ -22,21 +21,6 @@ type options struct {
 
 func (o *options) Validate() error {
 	return o.service.Validate()
-}
-
-func gatherOptions(fs *flag.FlagSet, args ...string) (options, error) {
-	var o options
-
-	o.service.AddFlags(fs)
-
-	fs.BoolVar(
-		&o.enableDebug, "enable_debug", false,
-		"whether to enable debug model.",
-	)
-
-	err := fs.Parse(args)
-
-	return o, err
 }
 
 func main() {
