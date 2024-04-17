@@ -2,7 +2,6 @@ package dto
 
 import (
 	"encoding/json"
-	"fmt"
 	flattener "github.com/anshal21/json-flattener"
 	cloudevents "github.com/cloudevents/sdk-go/v2"
 	"github.com/go-playground/validator/v10"
@@ -60,10 +59,6 @@ func (raw *EurBuildRaw) ToCloudEvent() EurBuildEvent {
 }
 
 func (event *EurBuildEvent) ToCloudEventDO() do.MessageCloudEventDO {
-	jsons, errs := json.Marshal(event.Data()) //转换成JSON返回的是byte[]
-	if errs != nil {
-		fmt.Println(errs.Error())
-	}
 	messageCloudEventDO := do.MessageCloudEventDO{
 		Source:          event.Source(),
 		Time:            event.Time(),
@@ -72,7 +67,7 @@ func (event *EurBuildEvent) ToCloudEventDO() do.MessageCloudEventDO {
 		DataSchema:      event.DataSchema(),
 		DataContentType: event.DataContentType(),
 		EventId:         event.ID(),
-		DataJson:        jsons,
+		DataJson:        event.Data(),
 	}
 	return messageCloudEventDO
 }
