@@ -24,7 +24,7 @@ func Handle(payload []byte, _ map[string]string) error {
 
 func save(event dto.EurBuildEvent) {
 	do := event.ToCloudEventDO()
-	if postgresql.DB().Model(&do).Where("event_id = ?", do.EventId).Updates(&do).RowsAffected == 0 {
+	if postgresql.DB().Model(&do).Where("source=?", do.Source, "event_id = ?", do.EventId).Updates(&do).RowsAffected == 0 {
 		postgresql.DB().Create(&do)
 	}
 }

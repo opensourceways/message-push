@@ -6,7 +6,7 @@ import (
 )
 
 type SubscribePushConfig struct {
-	DataSchema  string          `gorm:"column:data_schema"`
+	Source      string          `gorm:"column:source"`
 	EventType   string          `gorm:"column:event_type"`
 	SpecVersion string          `gorm:"column:spec_version"`
 	PushConfigs json.RawMessage `gorm:"type:json;column:push_configs" json:"push_configs"`

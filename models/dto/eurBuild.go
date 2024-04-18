@@ -42,21 +42,19 @@ type EurBuildRaw struct {
 }
 
 func (raw *EurBuildRaw) ToCloudEvent() EurBuildEvent {
-	event := cloudevents.NewEvent()
-	event.SetID(raw.ID)
-	event.SetSource(
+	newEvent := cloudevents.NewEvent()
+	newEvent.SetSource("https://eur.openeuler.openatom.cn")
+	newEvent.SetDataSchema(
 		"https://eur.openeuler.openatom.cn/coprs/" + raw.Body.Owner + "/" + raw.Body.Pkg + "/build/" + strconv.Itoa(raw.Body.Build),
 	)
-	event.SetType("state:change")
-	event.SetTime(raw.Headers.SentAt)
-	event.SetDataContentType("application/json")
-	event.SetDataSchema("eur:build_task")
-	event.SetSpecVersion("1.0")
-	err := event.SetData(cloudevents.ApplicationJSON, raw)
-	if err != nil {
-		return EurBuildEvent{}
-	}
-	return EurBuildEvent{event}
+	newEvent.SetType(raw.Topic)
+	newEvent.SetTime(raw.Headers.SentAt)
+	newEvent.SetDataContentType(cloudevents.ApplicationCloudEventsJSON)
+	newEvent.SetSpecVersion(cloudevents.VersionV1)
+	_ = newEvent.SetData(cloudevents.ApplicationJSON, raw)
+	newEvent.SetID(raw.Topic + ":" + raw.ID)
+
+	return EurBuildEvent{newEvent}
 }
 
 type EurBuildEvent struct {
@@ -117,7 +115,7 @@ func (event EurBuildEvent) GetSubscribe() []bo.SubscribePushConfig {
 func getSubscribeFromDB(event EurBuildEvent) []bo.SubscribePushConfig {
 	var subscribePushConfigs []bo.SubscribePushConfig
 	postgresql.DB().Table("message_center.cloud_event_message").Raw(
-		`select sc.data_schema,
+		`select sc.source,
        sc.event_type,
        sc.spec_version,
        sc.mode_filter,
@@ -129,13 +127,13 @@ from message_center.push_config pc
          join message_center.subscribe_config sc on pc.subscribe_id = sc.id
     and pc.is_deleted is false and sc.is_deleted = false
 where sc.event_type = ?
-  and sc.data_schema = ?
+  and sc.source = ?
   and sc.spec_version  = ?
-group by sc.data_schema,
+group by sc.source,
          sc.event_type,
          sc.spec_version,
          sc.mode_filter`,
-		event.Type(), event.DataSchema(), event.SpecVersion(),
+		event.Type(), event.Source(), event.SpecVersion(),
 	).Scan(&subscribePushConfigs)
 	return subscribePushConfigs
 }
