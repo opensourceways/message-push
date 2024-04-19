@@ -6,8 +6,10 @@ Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved
 package utils
 
 import (
+	"fmt"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -127,4 +129,25 @@ func EscapePgsqlValue(value string) string {
 	value = strings.ReplaceAll(value, `]`, `\]`)
 	value = strings.ReplaceAll(value, `^`, `\^`)
 	return value
+}
+
+func StringifyMap(data map[string]interface{}) map[string]string {
+	result := make(map[string]string)
+	for key, value := range data {
+		result[key] = toString(value)
+	}
+	return result
+}
+
+func toString(value interface{}) string {
+	switch v := value.(type) {
+	case int:
+		return strconv.Itoa(v)
+	case float64:
+		return strconv.FormatFloat(v, 'f', -1, 64)
+	case string:
+		return v
+	default:
+		return fmt.Sprintf("%v", v)
+	}
 }

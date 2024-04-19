@@ -5,7 +5,6 @@ import (
 	flattener "github.com/anshal21/json-flattener"
 	cloudevents "github.com/cloudevents/sdk-go/v2"
 	"github.com/go-playground/validator/v10"
-	"github.com/todocoder/go-stream/stream"
 	"gorm.io/datatypes"
 	"message-push/common/postgresql"
 	"message-push/models/bo"
@@ -83,6 +82,14 @@ func (raw *EurBuildRaw) Message() ([]byte, error) {
 	return json.Marshal(raw)
 }
 
+func (raw *EurBuildRaw) Flatten() map[string]interface{} {
+	s, _ := json.Marshal(raw)
+	flatJSON, _ := flattener.FlattenJSON(string(s), flattener.DotSeparator)
+	flatMap := make(map[string]interface{})
+	_ = json.Unmarshal([]byte(flatJSON), &flatMap)
+	return flatMap
+}
+
 func (raw *EurBuildRaw) ModeFilter(modeFilterJson datatypes.JSON) bool {
 	s, _ := json.Marshal(raw)
 	flatJSON, _ := flattener.FlattenJSON(string(s), flattener.DotSeparator)
@@ -105,11 +112,7 @@ func (event EurBuildEvent) GetSubscribe() []bo.SubscribePushConfig {
 	subscribePushConfigs := getSubscribeFromDB(event)
 	var eurBuildRaw EurBuildRaw
 	_ = json.Unmarshal(event.Data(), &eurBuildRaw)
-	return stream.Of(subscribePushConfigs...).Filter(
-		func(item bo.SubscribePushConfig) bool {
-			return eurBuildRaw.ModeFilter(item.ModeFilter)
-		},
-	).ToSlice()
+	return subscribePushConfigs
 }
 
 func getSubscribeFromDB(event EurBuildEvent) []bo.SubscribePushConfig {

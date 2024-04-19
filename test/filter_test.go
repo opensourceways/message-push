@@ -34,9 +34,7 @@ func TestFilter(t *testing.T) {
 
 func TestParse(t *testing.T) {
 	mod_filter := `{
-  "body.ip": "ip",
-  "body.owner": "eq=fundawan",
-  "headers.priority": "lte=10"
+"body.build": "eq=93853"
 }`
 
 	json1 := `{

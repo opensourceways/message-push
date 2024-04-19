@@ -1,9 +1,11 @@
 package main
 
+import "C"
 import (
 	kfklib "github.com/opensourceways/kafka-lib/agent"
 	"github.com/opensourceways/server-common-lib/logrusutil"
 	"github.com/sirupsen/logrus"
+	"message-push/common/cassandra"
 	"message-push/common/kafka"
 	"message-push/common/postgresql"
 	"message-push/config"
@@ -26,6 +28,11 @@ func main() {
 	defer kafka.Exit()
 	if err := postgresql.Init(&cfg.Postgresql, false); err != nil {
 		logrus.Errorf("init postgresql failed, err:%s", err.Error())
+		return
+	}
+
+	if err := cassandra.Init(); err != nil {
+		logrus.Errorf("init cassandra failed, err:%s", err.Error())
 		return
 	}
 

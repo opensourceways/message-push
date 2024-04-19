@@ -5,6 +5,7 @@ require (
 	github.com/anshal21/json-flattener v1.0.0
 	github.com/cloudevents/sdk-go/v2 v2.15.2
 	github.com/go-playground/validator/v10 v10.19.0
+	github.com/gocql/gocql v1.6.0
 	github.com/jackc/pgx/v5 v5.3.1
 	github.com/lib/pq v1.10.9
 	github.com/opensourceways/kafka-lib v0.0.0-20240410053850-1b04ade416f1
@@ -29,6 +30,7 @@ require (
 	github.com/go-sql-driver/mysql v1.7.0 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/uuid v1.3.0 // indirect
+	github.com/hailocab/go-hostpool v0.0.0-20160125115350-e80d13ce29ed // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/go-uuid v1.0.3 // indirect
@@ -60,6 +62,7 @@ require (
 	golang.org/x/sync v0.7.0 // indirect
 	golang.org/x/sys v0.19.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
+	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gorm.io/driver/mysql v1.4.7 // indirect
 	k8s.io/apimachinery v0.29.3 // indirect
