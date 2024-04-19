@@ -1,0 +1,12 @@
+create table message_push_record
+(
+    id           timeuuid primary key,
+    created_at   timestamp,
+    data         map<text, text>,
+    event_id     text,
+    push_address text,
+    push_state   text,
+    push_time    timestamp,
+    push_type    text,
+    source       text
+);
