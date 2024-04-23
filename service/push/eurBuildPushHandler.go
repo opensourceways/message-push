@@ -43,8 +43,7 @@ func publishMessage(event dto.EurBuildEvent) {
 			case "phone":
 				context.TODO()
 			case "message":
-				//res := sendHWCloudMessage(eurBuildRaw, push)
-				res := dto.PushResult{Res: dto.Succeed}
+				res := sendHWCloudMessage(eurBuildRaw, push)
 				insertData(event, flatRaw, push, item.RecipientId, res)
 			case "api":
 				res := dto.PushResult{Res: dto.Succeed}
