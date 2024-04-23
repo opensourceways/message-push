@@ -6,6 +6,7 @@ import (
 )
 
 type SubscribePushConfig struct {
+	RecipientId string          `gorm:"column:recipient_id"`
 	Source      string          `gorm:"column:source"`
 	EventType   string          `gorm:"column:event_type"`
 	SpecVersion string          `gorm:"column:spec_version"`

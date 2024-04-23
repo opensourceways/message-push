@@ -9,7 +9,8 @@ create table subscribe_config
     mode_filter  jsonb,
     created_at   timestamp,
     updated_at   timestamp,
-    is_deleted   boolean
+    is_deleted   boolean,
+    recipient_id text
 );
 
 comment on column subscribe_config.source is '消息源';
@@ -17,6 +18,8 @@ comment on column subscribe_config.source is '消息源';
 comment on column subscribe_config.event_type is '事件类型';
 
 comment on column subscribe_config.spec_version is '版本';
+
+comment on column subscribe_config.recipient_id is '接收人id';
 
 alter table subscribe_config
     owner to postgres;

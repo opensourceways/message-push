@@ -12,6 +12,7 @@ import (
 	"message-push/models/dto"
 	"message-push/utils"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -26,7 +27,7 @@ func Handle(payload []byte, _ map[string]string) error {
 }
 
 func publishMessage(event dto.EurBuildEvent) {
-	var eurBuildRaw dto.EurBuildRaw
+	var eurBuildRaw dto.EurBuildMessageRaw
 	_ = json.Unmarshal(event.Data(), &eurBuildRaw)
 	subscribes := event.GetSubscribe()
 	flatRaw := eurBuildRaw.Flatten()
@@ -42,10 +43,12 @@ func publishMessage(event dto.EurBuildEvent) {
 			case "phone":
 				context.TODO()
 			case "message":
-				//sendHWCloudMessage(eurBuildRaw, push)
-				insertData(event, flatRaw, push)
+				//res := sendHWCloudMessage(eurBuildRaw, push)
+				res := dto.PushResult{Res: dto.Succeed}
+				insertData(event, flatRaw, push, item.RecipientId, res)
 			case "api":
-				context.TODO()
+				res := dto.PushResult{Res: dto.Succeed}
+				insertData(event, flatRaw, push, item.RecipientId, res)
 			default:
 				logrus.Info("不支持的推送类型:", push.PushType)
 			}
@@ -53,37 +56,51 @@ func publishMessage(event dto.EurBuildEvent) {
 	})
 }
 
-func sendHWCloudMessage(eurBuildRaw dto.EurBuildRaw, push bo.PushConfig) {
+func sendHWCloudMessage(eurBuildRaw dto.EurBuildMessageRaw, push bo.PushConfig) dto.PushResult {
 	masConfig := pushSdk.NewTestConfig()
+	topicArray := strings.Split(eurBuildRaw.Topic, ".")
 	templateParas := []string{
 		strconv.Itoa(eurBuildRaw.Body.Build),
-		"success",
+		topicArray[len(topicArray)-1],
 		eurBuildRaw.Body.Owner,
 		eurBuildRaw.Body.Copr,
 		strconv.Itoa(eurBuildRaw.Body.Build),
 	}
-	pushSdk.SendHWCloudMessage(masConfig, templateParas, push.PushAddress)
+	return pushSdk.SendHWCloudMessage(masConfig, templateParas, push.PushAddress)
 }
 
-func insertData(eurBuildEvent dto.EurBuildEvent, flatRaw map[string]interface{}, push bo.PushConfig) {
+func insertData(eurBuildEvent dto.EurBuildEvent, flatRaw map[string]interface{}, push bo.PushConfig, recipient string, result dto.PushResult) {
 	stringifyMap := utils.StringifyMap(flatRaw)
-	insert := `INSERT INTO message_center.message_push_record
-(id, created_at, data, event_id, push_address, push_state, push_time,
- push_type, source)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+	insert := `insert into message_push_record
+			   (
+			    recipient_id,
+ 				source,
+ 				time_uuid,
+ 				created_at,
+ 				data, 
+			    event_id,
+ 				push_address,
+ 				push_state,
+ 				push_time,
+ 				push_type,
+			    remark
+ 				)
+				values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?);
 `
 	err := cassandra.Session().
 		Query(
 			insert,
+			recipient,
+			eurBuildEvent.Source(),
 			gocql.TimeUUID(),
 			time.Now(),
 			stringifyMap,
 			eurBuildEvent.ID(),
 			push.PushAddress,
-			"success",
+			result.Res,
 			time.Now(),
 			push.PushType,
-			eurBuildEvent.Source(),
+			result.Remark,
 		).
 		Exec()
 	if err != nil {

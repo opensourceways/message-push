@@ -6,12 +6,13 @@ import (
 	"fmt"
 	core "huaweicloud.com/apig/signer"
 	"io/ioutil"
+	"message-push/models/dto"
 	"net/http"
 	"net/url"
 	"strings"
 )
 
-func SendHWCloudMessage(msgConfig HWCloudMsgConfig, templateParas []string, phoneNum string) {
+func SendHWCloudMessage(msgConfig HWCloudMsgConfig, templateParas []string, phoneNum string) dto.PushResult {
 	//必填,请参考"开发准备"获取如下数据,替换为实际值
 	appInfo := core.Signer{
 		// 认证用的appKey和appSecret硬编码到代码中或者明文存储都有很大的安全风险，建议在配置文件或者环境变量中密文存放，使用时解密，确保安全；
@@ -43,8 +44,11 @@ func SendHWCloudMessage(msgConfig HWCloudMsgConfig, templateParas []string, phon
 	templateParasString := "[\"" + strings.Join(templateParas[:], "\",\"") + "\"]"
 
 	body := buildRequestBody(sender, receiver, templateId, templateParasString, statusCallBack, signature)
-	resp, _ := post(apiAddress, []byte(body), appInfo)
-	fmt.Println(resp)
+	_, err := post(apiAddress, []byte(body), appInfo)
+	if err != nil {
+		return dto.PushResult{Res: dto.Failed, Remark: err.Error()}
+	}
+	return dto.PushResult{Res: dto.Succeed}
 }
 
 /**

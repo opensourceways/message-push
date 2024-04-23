@@ -1,6 +1,7 @@
 create table message_push_record
 (
-    id           timeuuid primary key,
+    recipient_id text,
+    time_uuid    timeuuid,
     created_at   timestamp,
     data         map<text, text>,
     event_id     text,
@@ -8,5 +9,12 @@ create table message_push_record
     push_state   text,
     push_time    timestamp,
     push_type    text,
-    source       text
-);
+    remark       text,
+    source       text,
+    primary key (recipient_id, time_uuid)
+)
+            with clustering order by (time_uuid desc);
+
+create index message_push_record_source_index
+    on message_push_record (source);
+
