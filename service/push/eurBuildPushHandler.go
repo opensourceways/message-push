@@ -17,7 +17,7 @@ import (
 )
 
 func Handle(payload []byte, _ map[string]string) error {
-	var eurBuildEvent dto.EurBuildEvent
+	var eurBuildEvent dto.CloudEvents
 	msgBodyErr := json.Unmarshal(payload, &eurBuildEvent)
 	if msgBodyErr != nil {
 		return msgBodyErr
@@ -26,7 +26,7 @@ func Handle(payload []byte, _ map[string]string) error {
 	return nil
 }
 
-func publishMessage(event dto.EurBuildEvent) {
+func publishMessage(event dto.CloudEvents) {
 	var eurBuildRaw dto.EurBuildMessageRaw
 	_ = json.Unmarshal(event.Data(), &eurBuildRaw)
 	subscribes := event.GetSubscribe()
@@ -66,9 +66,12 @@ func sendHWCloudMessage(eurBuildRaw dto.EurBuildMessageRaw, push bo.PushConfig) 
 		strconv.Itoa(eurBuildRaw.Body.Build),
 	}
 	return pushSdk.SendHWCloudMessage(masConfig, templateParas, push.PushAddress)
+	return dto.PushResult{
+		Res: dto.Succeed,
+	}
 }
 
-func insertData(eurBuildEvent dto.EurBuildEvent, flatRaw map[string]interface{}, push bo.PushConfig, recipient string, result dto.PushResult) {
+func insertData(eurBuildEvent dto.CloudEvents, flatRaw map[string]interface{}, push bo.PushConfig, recipient string, result dto.PushResult) {
 	stringifyMap := utils.StringifyMap(flatRaw)
 	insert := `insert into message_push_record
 			   (

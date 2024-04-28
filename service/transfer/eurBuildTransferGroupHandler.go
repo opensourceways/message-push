@@ -5,14 +5,8 @@ import (
 	"fmt"
 	"github.com/IBM/sarama"
 	"message-push/common/kafka"
-	"message-push/common/postgresql"
 	"message-push/models/dto"
 )
-
-// Handler
-type Handler interface {
-	handle(message []byte) error
-}
 
 type EurHandler struct{}
 
@@ -44,15 +38,8 @@ func (h EurGroupHandler) ConsumeClaim(session sarama.ConsumerGroupSession, claim
 		if kafkaSendErr != nil {
 			return kafkaSendErr
 		}
-		save(eurBuildEvent)
+		eurBuildEvent.SaveDb()
 		session.MarkMessage(message, "")
 	}
 	return nil
-}
-
-func save(event dto.EurBuildEvent) {
-	do := event.ToCloudEventDO()
-	if postgresql.DB().Model(&do).Where("source=?", do.Source, "event_id = ?", do.EventId).Updates(&do).RowsAffected == 0 {
-		postgresql.DB().Create(&do)
-	}
 }

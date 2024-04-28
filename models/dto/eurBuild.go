@@ -4,9 +4,6 @@ import (
 	"encoding/json"
 	flattener "github.com/anshal21/json-flattener"
 	cloudevents "github.com/cloudevents/sdk-go/v2"
-	"message-push/common/postgresql"
-	"message-push/models/bo"
-	"message-push/models/do"
 	"strconv"
 	"time"
 )
@@ -67,7 +64,7 @@ func (raw *EurBuildMessageRaw) Flatten() map[string]interface{} {
 	return flatMap
 }
 
-func (raw *EurBuildMessageRaw) ToCloudEvent() EurBuildEvent {
+func (raw *EurBuildMessageRaw) ToCloudEvent() CloudEvents {
 	newEvent := cloudevents.NewEvent()
 	newEvent.SetSource("https://copr.fedorainfracloud.org")
 	newEvent.SetDataSchema(
@@ -80,7 +77,7 @@ func (raw *EurBuildMessageRaw) ToCloudEvent() EurBuildEvent {
 	_ = newEvent.SetData(cloudevents.ApplicationJSON, raw)
 	newEvent.SetID(raw.Topic + ":" + raw.Properties.MessageID)
 
-	return EurBuildEvent{newEvent}
+	return CloudEvents{newEvent}
 }
 
 type EurBuildRaw struct {
@@ -110,7 +107,7 @@ type EurBuildRaw struct {
 	Topic string      `json:"topic"`
 }
 
-func (raw *EurBuildRaw) ToCloudEvent() EurBuildEvent {
+func (raw *EurBuildRaw) ToCloudEvent() CloudEvents {
 	newEvent := cloudevents.NewEvent()
 	newEvent.SetSource("https://eur.openeuler.openatom.cn")
 	newEvent.SetDataSchema(
@@ -123,66 +120,5 @@ func (raw *EurBuildRaw) ToCloudEvent() EurBuildEvent {
 	_ = newEvent.SetData(cloudevents.ApplicationJSON, raw)
 	newEvent.SetID(raw.Topic + ":" + raw.ID)
 
-	return EurBuildEvent{newEvent}
-}
-
-type EurBuildEvent struct {
-	cloudevents.Event
-}
-
-func (event EurBuildEvent) ToCloudEventDO() do.MessageCloudEventDO {
-	messageCloudEventDO := do.MessageCloudEventDO{
-		Source:          event.Source(),
-		Time:            event.Time(),
-		EventType:       event.Type(),
-		SpecVersion:     event.SpecVersion(),
-		DataSchema:      event.DataSchema(),
-		DataContentType: event.DataContentType(),
-		EventId:         event.ID(),
-		DataJson:        event.Data(),
-	}
-	return messageCloudEventDO
-}
-
-func (event EurBuildEvent) Message() ([]byte, error) {
-	return json.Marshal(event)
-}
-
-func (raw *EurBuildRaw) Message() ([]byte, error) {
-	return json.Marshal(raw)
-}
-
-func (event EurBuildEvent) GetSubscribe() []bo.SubscribePushConfig {
-	subscribePushConfigs := getSubscribeFromDB(event)
-	return subscribePushConfigs
-}
-
-func getSubscribeFromDB(event EurBuildEvent) []bo.SubscribePushConfig {
-	var subscribePushConfigs []bo.SubscribePushConfig
-	postgresql.DB().Raw(
-		`select 
-       sc.recipient_id,
-       sc.source,
-       sc.event_type,
-       sc.spec_version,
-       sc.mode_filter,
-       json_agg(
-               json_build_object('push_type', pc.push_type, 'push_address', pc.push_address)
-       ) push_configs
-
-from message_center.push_config pc
-         join message_center.subscribe_config sc on pc.subscribe_id = sc.id
-    and pc.is_deleted is false and sc.is_deleted = false
-where sc.event_type = ?
-  and sc.source = ?
-  and sc.spec_version  = ?
-group by 
-		sc.recipient_id,
-		sc.source,
-		sc.event_type,
-		sc.spec_version,
-		sc.mode_filter`,
-		event.Type(), event.Source(), event.SpecVersion(),
-	).Scan(&subscribePushConfigs)
-	return subscribePushConfigs
+	return CloudEvents{newEvent}
 }

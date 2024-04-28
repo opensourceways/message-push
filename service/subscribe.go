@@ -21,9 +21,21 @@ func SubscribeEurRaw() {
 		Topic:   "eur_build_raw",
 		Address: "127.0.0.1:9092",
 		Group:   "ssp_test",
-		Offset:  sarama.OffsetOldest,
+		Offset:  sarama.OffsetNewest,
 	}
 
 	h := transfer.EurGroupHandler{}
+	kafka.ConsumeGroup(cfg, &h)
+}
+
+func SubscribeGiteeRaw() {
+	cfg := kafka.ConsumeConfig{
+		Topic:   "gitee_comment_raw",
+		Address: "127.0.0.1:9092",
+		Group:   "ssp_test",
+		Offset:  sarama.OffsetNewest,
+	}
+
+	h := transfer.GiteeGroupHandler{}
 	kafka.ConsumeGroup(cfg, &h)
 }
