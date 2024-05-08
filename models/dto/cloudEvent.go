@@ -2,32 +2,24 @@ package dto
 
 import (
 	"encoding/json"
+	"fmt"
 	cloudevents "github.com/cloudevents/sdk-go/v2"
 	"message-push/common/postgresql"
 	"message-push/models/bo"
-	"message-push/models/do"
 )
 
 type CloudEvents struct {
 	cloudevents.Event
 }
 
-func (event CloudEvents) Message() ([]byte, error) {
-	return json.Marshal(event)
+func NewCloudEvents() CloudEvents {
+	return CloudEvents{
+		Event: cloudevents.NewEvent(cloudevents.VersionV1),
+	}
 }
 
-func (event CloudEvents) ToCloudEventDO() do.MessageCloudEventDO {
-	messageCloudEventDO := do.MessageCloudEventDO{
-		Source:          event.Source(),
-		Time:            event.Time(),
-		EventType:       event.Type(),
-		SpecVersion:     event.SpecVersion(),
-		DataSchema:      event.DataSchema(),
-		DataContentType: event.DataContentType(),
-		EventId:         event.ID(),
-		DataJson:        event.Data(),
-	}
-	return messageCloudEventDO
+func (event CloudEvents) Message() ([]byte, error) {
+	return json.Marshal(event)
 }
 
 func (event CloudEvents) GetSubscribe() []bo.SubscribePushConfig {
@@ -36,6 +28,7 @@ func (event CloudEvents) GetSubscribe() []bo.SubscribePushConfig {
 }
 
 func (event CloudEvents) getSubscribeFromDB() []bo.SubscribePushConfig {
+	fmt.Println(event)
 	var subscribePushConfigs []bo.SubscribePushConfig
 	postgresql.DB().Raw(
 		`select 
@@ -54,6 +47,7 @@ from message_center.push_config pc
 where sc.event_type = ?
   and sc.source = ?
   and sc.spec_version  = ?
+  and sc.is_deleted = false
 group by 
 		sc.recipient_id,
 		sc.source,
@@ -63,11 +57,4 @@ group by
 		event.Type(), event.Source(), event.SpecVersion(),
 	).Scan(&subscribePushConfigs)
 	return subscribePushConfigs
-}
-
-func (event CloudEvents) SaveDb() {
-	do := event.ToCloudEventDO()
-	if postgresql.DB().Model(&do).Where("source=?", do.Source, "event_id = ?", do.EventId).Updates(&do).RowsAffected == 0 {
-		postgresql.DB().Create(&do)
-	}
 }

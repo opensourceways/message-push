@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 )
 
 func SendHWCloudMessage(msgConfig HWCloudMsgConfig, templateParas []string, phoneNum string) dto.PushResult {
@@ -48,7 +49,11 @@ func SendHWCloudMessage(msgConfig HWCloudMsgConfig, templateParas []string, phon
 	if err != nil {
 		return dto.PushResult{Res: dto.Failed, Remark: err.Error()}
 	}
-	return dto.PushResult{Res: dto.Succeed}
+	return dto.PushResult{
+		Res:    dto.Succeed,
+		Time:   time.Now(),
+		Remark: "succeed",
+	}
 }
 
 /**

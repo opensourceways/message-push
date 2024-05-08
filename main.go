@@ -43,14 +43,8 @@ func main() {
 
 	defer kfklib.Exit()
 	go func() {
-		service.SubscribeGiteeRaw()
+		service.SubscribeEurEvent()
 	}()
-	//go func() {
-	//	service.SubscribeEurRaw()
-	//}()
-	//go func() {
-	//	service.SubscribeEurEvent()
-	//}()
 	<-sig
 }
 

@@ -17,7 +17,7 @@ import (
 )
 
 func Handle(payload []byte, _ map[string]string) error {
-	var eurBuildEvent dto.CloudEvents
+	eurBuildEvent := dto.NewCloudEvents()
 	msgBodyErr := json.Unmarshal(payload, &eurBuildEvent)
 	if msgBodyErr != nil {
 		return msgBodyErr
@@ -30,9 +30,15 @@ func publishMessage(event dto.CloudEvents) {
 	var eurBuildRaw dto.EurBuildMessageRaw
 	_ = json.Unmarshal(event.Data(), &eurBuildRaw)
 	subscribes := event.GetSubscribe()
+	if subscribes == nil || len(subscribes) == 0 {
+		return
+	}
 	flatRaw := eurBuildRaw.Flatten()
 	stream.Of(subscribes...).Filter(
 		func(item bo.SubscribePushConfig) bool {
+			if item.ModeFilter == nil {
+				return true
+			}
 			return utils.ModeFilter(flatRaw, item.ModeFilter)
 		},
 	).ForEach(func(item bo.SubscribePushConfig) {
@@ -46,8 +52,7 @@ func publishMessage(event dto.CloudEvents) {
 				res := sendHWCloudMessage(eurBuildRaw, push)
 				insertData(event, flatRaw, push, item.RecipientId, res)
 			case "api":
-				res := dto.PushResult{Res: dto.Succeed}
-				insertData(event, flatRaw, push, item.RecipientId, res)
+				context.TODO()
 			default:
 				logrus.Info("不支持的推送类型:", push.PushType)
 			}
@@ -66,41 +71,36 @@ func sendHWCloudMessage(eurBuildRaw dto.EurBuildMessageRaw, push bo.PushConfig) 
 		strconv.Itoa(eurBuildRaw.Body.Build),
 	}
 	return pushSdk.SendHWCloudMessage(masConfig, templateParas, push.PushAddress)
-	return dto.PushResult{
-		Res: dto.Succeed,
-	}
+
 }
 
 func insertData(eurBuildEvent dto.CloudEvents, flatRaw map[string]interface{}, push bo.PushConfig, recipient string, result dto.PushResult) {
 	stringifyMap := utils.StringifyMap(flatRaw)
-	insert := `insert into message_push_record
-			   (
-			    recipient_id,
- 				source,
- 				time_uuid,
- 				created_at,
- 				data, 
-			    event_id,
- 				push_address,
- 				push_state,
- 				push_time,
- 				push_type,
-			    remark
- 				)
-				values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?);
+	insert := `insert into message_push_record (recipient_id, time_uuid, created_at, event_data, event_data_content_type,
+                                 event_data_schema, event_id, event_source, event_source_url, event_spec_version,
+                                 event_time, event_type, event_user, push_address, push_state, push_time, push_type,
+                                 remark)
+values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);
 `
 	err := cassandra.Session().
 		Query(
 			insert,
 			recipient,
-			eurBuildEvent.Source(),
 			gocql.TimeUUID(),
 			time.Now(),
 			stringifyMap,
+			eurBuildEvent.DataContentType(),
+			eurBuildEvent.DataSchema(),
 			eurBuildEvent.ID(),
+			eurBuildEvent.Source(),
+			eurBuildEvent.Extensions()["sourceurl"].(string),
+			eurBuildEvent.SpecVersion(),
+			eurBuildEvent.Time(),
+			eurBuildEvent.Type(),
+			eurBuildEvent.Extensions()["user"].(string),
 			push.PushAddress,
 			result.Res,
-			time.Now(),
+			result.Time,
 			push.PushType,
 			result.Remark,
 		).
@@ -108,6 +108,5 @@ func insertData(eurBuildEvent dto.CloudEvents, flatRaw map[string]interface{}, p
 	if err != nil {
 		panic(nil)
 		return
-
 	}
 }

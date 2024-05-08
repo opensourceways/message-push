@@ -1,8 +1,6 @@
 package dto
 
 import (
-	cloudevents "github.com/cloudevents/sdk-go/v2"
-	"strconv"
 	"time"
 )
 
@@ -154,18 +152,4 @@ type Sender struct {
 type Enterprise struct {
 	Name string `json:"name"`
 	URL  string `json:"url"`
-}
-
-func (comment *Comment) ToCloudEventCloudEvents() CloudEvents {
-	topic := "gitee.comment"
-	newEvent := cloudevents.NewEvent()
-	newEvent.SetSource("https://gitee.com")
-	newEvent.SetDataSchema(comment.HTMLURL)
-	newEvent.SetType(topic)
-	newEvent.SetTime(comment.CreatedAt)
-	newEvent.SetDataContentType(cloudevents.ApplicationCloudEventsJSON)
-	newEvent.SetSpecVersion(cloudevents.VersionV1)
-	newEvent.SetData(cloudevents.ApplicationJSON, comment)
-	newEvent.SetID(topic + ":" + strconv.Itoa(comment.ID))
-	return CloudEvents{newEvent}
 }
