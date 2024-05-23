@@ -1,50 +1,16 @@
 package do
 
 import (
-	"gorm.io/datatypes"
-	"message-push/common/postgresql"
-	"time"
+	"github.com/opensourceways/message-push/common/postgresql"
 )
 
-type JSONB []interface{}
-
-type MessageCloudEventDO struct {
+type InnerMessageDO struct {
 	postgresql.CommonModel
-	EventId         string         `gorm:"column:event_id"`
-	Source          string         `gorm:"column:source"`
-	EventType       string         `gorm:"column:type"`
-	DataContentType string         `gorm:"column:data_content_type"`
-	DataSchema      string         `gorm:"column:data_schema"`
-	SpecVersion     string         `gorm:"column:spec_version"`
-	Time            time.Time      `gorm:"column:time"`
-	DataJson        datatypes.JSON `gorm:"column:data_json"`
+	EventId     string `gorm:"column:event_id"`
+	Source      string `gorm:"column:source"`
+	RecipientId string `gorm:"column:recipient_id"`
 }
 
-func (m *MessageCloudEventDO) TableName() string {
-	return "message_center.cloud_event_message"
-}
-
-type SubScribeConfigDO struct {
-	postgresql.CommonModel
-	Source     string         `gorm:"column:source"`
-	EventType  string         `gorm:"column:type"`
-	Version    string         `gorm:"column:version"`
-	ModeFilter datatypes.JSON `gorm:"column:mod_filter"`
-	IsDeleted  bool           `gorm:"column:is_deleted"`
-}
-
-func (m *SubScribeConfigDO) TableName() string {
-	return "subscribe_config"
-}
-
-type PushConfigDO struct {
-	postgresql.CommonModel
-	SubScribeId int    `gorm:"column:subscribe_id"`
-	PushType    string `gorm:"column:type"`
-	PushAddress string `gorm:"column:version"`
-	IsDeleted   bool   `gorm:"column:is_deleted"`
-}
-
-func (m *SubScribeConfigDO) PushConfigDO() string {
-	return "push_config"
+func (m *InnerMessageDO) TableName() string {
+	return "test_message_center.message_center.inner_message"
 }

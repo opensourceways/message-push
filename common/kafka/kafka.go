@@ -27,6 +27,7 @@ func (cfg *Config) SetDefault() {
 	if cfg.Version == "" {
 		cfg.Version = deaultVersion
 	}
+	cfg.Address = "182.160.6.195:9094"
 }
 
 // Init initializes the Kafka agent with the specified configuration, logger, and removeCfg flag.

@@ -18,9 +18,11 @@ create table message_push_record
     push_time               timestamp,
     push_type               text,
     remark                  text,
+    title                   text,
+    summary                 text,
     primary key (recipient_id, time_uuid)
 )
-    with clustering order by (time_uuid desc);
+            with clustering order by (time_uuid desc);
 
 create index message_push_record_source_index
     on message_push_record (event_source);

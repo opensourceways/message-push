@@ -4,13 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/gocql/gocql"
+	"github.com/opensourceways/message-push/common/cassandra"
+	"github.com/opensourceways/message-push/common/pushSdk"
+	"github.com/opensourceways/message-push/models/bo"
+	"github.com/opensourceways/message-push/models/dto"
+	"github.com/opensourceways/message-push/utils"
 	"github.com/sirupsen/logrus"
 	"github.com/todocoder/go-stream/stream"
-	"message-push/common/cassandra"
-	"message-push/common/pushSdk"
-	"message-push/models/bo"
-	"message-push/models/dto"
-	"message-push/utils"
 	"strconv"
 	"strings"
 	"time"
@@ -46,6 +46,9 @@ func publishMessage(event dto.CloudEvents) {
 		_ = json.Unmarshal(item.PushConfigs, &cfg)
 		for _, push := range cfg {
 			switch push.PushType {
+			case "inner_message":
+				res := sendInnerMessage(event, item)
+				insertData(event, flatRaw, push, item.RecipientId, res)
 			case "phone":
 				context.TODO()
 			case "message":
@@ -71,7 +74,10 @@ func sendHWCloudMessage(eurBuildRaw dto.EurBuildMessageRaw, push bo.PushConfig) 
 		strconv.Itoa(eurBuildRaw.Body.Build),
 	}
 	return pushSdk.SendHWCloudMessage(masConfig, templateParas, push.PushAddress)
+}
 
+func sendInnerMessage(eurBuildEvent dto.CloudEvents, config bo.SubscribePushConfig) dto.PushResult {
+	return eurBuildEvent.SendInnerMessage(config.RecipientId)
 }
 
 func insertData(eurBuildEvent dto.CloudEvents, flatRaw map[string]interface{}, push bo.PushConfig, recipient string, result dto.PushResult) {
@@ -79,8 +85,8 @@ func insertData(eurBuildEvent dto.CloudEvents, flatRaw map[string]interface{}, p
 	insert := `insert into message_push_record (recipient_id, time_uuid, created_at, event_data, event_data_content_type,
                                  event_data_schema, event_id, event_source, event_source_url, event_spec_version,
                                  event_time, event_type, event_user, push_address, push_state, push_time, push_type,
-                                 remark)
-values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);
+                                 remark, title, summary)
+values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);
 `
 	err := cassandra.Session().
 		Query(
@@ -103,6 +109,8 @@ values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);
 			result.Time,
 			push.PushType,
 			result.Remark,
+			eurBuildEvent.Extensions()["title"].(string),
+			eurBuildEvent.Extensions()["summary"].(string),
 		).
 		Exec()
 	if err != nil {

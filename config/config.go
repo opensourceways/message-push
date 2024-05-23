@@ -6,10 +6,11 @@ Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved
 package config
 
 import (
-	common "message-push/common/config"
-	"message-push/common/kafka"
-	"message-push/common/postgresql"
-	"message-push/utils"
+	"github.com/opensourceways/message-push/common/cassandra"
+	common "github.com/opensourceways/message-push/common/config"
+	"github.com/opensourceways/message-push/common/kafka"
+	"github.com/opensourceways/message-push/common/postgresql"
+	"github.com/opensourceways/message-push/utils"
 	"os"
 )
 
@@ -32,6 +33,7 @@ func LoadConfig(path string, cfg *Config, remove bool) error {
 type Config struct {
 	Kafka      kafka.Config      `json:"kafka"`
 	Postgresql postgresql.Config `json:"postgresql"`
+	Cassandra  cassandra.Config  `json:"cassandra"`
 }
 
 // Init initializes the application using the configuration settings provided in the Config struct.

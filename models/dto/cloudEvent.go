@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	cloudevents "github.com/cloudevents/sdk-go/v2"
-	"message-push/common/postgresql"
-	"message-push/models/bo"
+	"github.com/opensourceways/message-push/common/postgresql"
+	"github.com/opensourceways/message-push/models/bo"
+	do "github.com/opensourceways/message-push/models/do"
+	"time"
 )
 
 type CloudEvents struct {
@@ -57,4 +59,21 @@ group by
 		event.Type(), event.Source(), event.SpecVersion(),
 	).Scan(&subscribePushConfigs)
 	return subscribePushConfigs
+}
+
+func (event CloudEvents) SendInnerMessage(recipientId string) PushResult {
+	innerMessageDO := do.InnerMessageDO{
+		EventId:     event.ID(),
+		Source:      event.Source(),
+		RecipientId: recipientId,
+	}
+	if postgresql.DB().Model(&innerMessageDO).Where("recipient_id=?", recipientId, "source=?", innerMessageDO.Source, "event_id = ?", innerMessageDO.EventId).Updates(&innerMessageDO).RowsAffected == 0 {
+		postgresql.DB().Create(&innerMessageDO)
+	}
+
+	return PushResult{
+		Res:    Succeed,
+		Time:   time.Now(),
+		Remark: "succeed",
+	}
 }

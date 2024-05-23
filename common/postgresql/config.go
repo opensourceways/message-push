@@ -26,11 +26,11 @@ type Config struct {
 
 func NewTestConfig() Config {
 	pgCfg := Config{
-		Host: "0.0.0.0",
-		User: "postgres",
-		Port: 5432,
-		Pwd:  "123456",
-		Name: "postgres",
+		Host: "49.0.247.41",
+		User: "message_center",
+		Port: 30051,
+		Pwd:  "fG82Ab++h6HMTg==",
+		Name: "test_message_center",
 		Life: 1000,
 	}
 	return pgCfg

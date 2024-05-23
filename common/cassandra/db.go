@@ -9,10 +9,14 @@ var (
 	session *gocql.Session
 )
 
-func Init() error {
-	cluster := gocql.NewCluster("127.0.0.1") // Cassandra节点的IP地址
-	cluster.Keyspace = "message_center"      // 替换为你的Keyspace名称
-	cluster.Port = 9042
+func Init(cfg *Config) error {
+	cluster := gocql.NewCluster(cfg.Host) // Cassandra节点的IP地址
+	cluster.Keyspace = cfg.KeySpace       // 替换为你的Keyspace名称
+	cluster.Port = cfg.Port
+	cluster.Authenticator = gocql.PasswordAuthenticator{
+		Password: cfg.Pwd,
+		Username: cfg.User,
+	}
 	sessionInstance, err := cluster.CreateSession()
 	if err != nil {
 		panic(err)
@@ -25,32 +29,6 @@ func Init() error {
 // DB returns the current database instance.
 func Session() *gocql.Session {
 	return session
-}
-
-func main() {
-	// 创建一个Cassandra集群的会话
-	cluster := gocql.NewCluster("0.0.0.0") // Cassandra节点的IP地址
-	cluster.Keyspace = "message_center"    // 替换为你的Keyspace名称
-	session, err := cluster.CreateSession()
-	if err != nil {
-		panic(err)
-	}
-	defer session.Close()
-
-	// 创建一个表
-	if err := createTable(session); err != nil {
-		panic(err)
-	}
-
-	// 插入一行数据
-	if err := insertData(session); err != nil {
-		panic(err)
-	}
-
-	// 查询数据
-	if err := queryData(session); err != nil {
-		panic(err)
-	}
 }
 
 func createTable(session *gocql.Session) error {

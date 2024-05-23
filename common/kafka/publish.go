@@ -8,7 +8,7 @@ package kafka
 import (
 	"fmt"
 	kfklib "github.com/opensourceways/kafka-lib/agent"
-	"message-push/models/message"
+	"github.com/opensourceways/message-push/models/message"
 )
 
 // sendMsg is a method on the messageAdapter struct that takes an EventMessage

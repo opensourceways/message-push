@@ -1,4 +1,4 @@
-module message-push
+module github.com/opensourceways/message-push
 
 require (
 	github.com/IBM/sarama v1.43.1
