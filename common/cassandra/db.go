@@ -1,7 +1,6 @@
 package cassandra
 
 import (
-	"fmt"
 	"github.com/gocql/gocql"
 )
 
@@ -29,37 +28,4 @@ func Init(cfg *Config) error {
 // DB returns the current database instance.
 func Session() *gocql.Session {
 	return session
-}
-
-func createTable(session *gocql.Session) error {
-	query := `
-        CREATE TABLE IF NOT EXISTS example_table (
-            id UUID PRIMARY KEY,
-            name TEXT,
-            age INT
-        )
-    `
-	return session.Query(query).Exec()
-}
-
-func insertData(session *gocql.Session) error {
-	id := gocql.TimeUUID()
-	query := "INSERT INTO example_table (id, name, age) VALUES (?, ?, ?)"
-	return session.Query(query, id, "John", 30).Exec()
-}
-
-func queryData(session *gocql.Session) error {
-	var id gocql.UUID
-	var name string
-	var age int
-
-	query := "SELECT id, name, age FROM example_table"
-	iter := session.Query(query).Iter()
-	for iter.Scan(&id, &name, &age) {
-		fmt.Printf("ID: %s, Name: %s, Age: %d\n", id, name, age)
-	}
-	if err := iter.Close(); err != nil {
-		return err
-	}
-	return nil
 }

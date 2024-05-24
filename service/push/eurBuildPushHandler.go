@@ -12,7 +12,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/todocoder/go-stream/stream"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -35,14 +34,14 @@ func publishMessage(event dto.CloudEvents) {
 	}
 	flatRaw := eurBuildRaw.Flatten()
 	stream.Of(subscribes...).Filter(
-		func(item bo.SubscribePushConfig) bool {
+		func(item bo.SubscribeConfig) bool {
 			if item.ModeFilter == nil {
 				return true
 			}
 			return utils.ModeFilter(flatRaw, item.ModeFilter)
 		},
-	).ForEach(func(item bo.SubscribePushConfig) {
-		var cfg []bo.PushConfig
+	).ForEach(func(item bo.SubscribeConfig) {
+		var cfg []bo.PushCfg
 		_ = json.Unmarshal(item.PushConfigs, &cfg)
 		for _, push := range cfg {
 			switch push.PushType {
@@ -63,12 +62,22 @@ func publishMessage(event dto.CloudEvents) {
 	})
 }
 
-func sendHWCloudMessage(eurBuildRaw dto.EurBuildMessageRaw, push bo.PushConfig) dto.PushResult {
+func sendHWCloudMessage(eurBuildRaw dto.EurBuildMessageRaw, push bo.PushCfg) dto.PushResult {
 	masConfig := pushSdk.NewTestConfig()
-	topicArray := strings.Split(eurBuildRaw.Topic, ".")
+	status := ""
+	switch eurBuildRaw.Body.Status {
+	case 0:
+		status = "失败"
+	case 1:
+		status = "成功"
+	case 3:
+		status = "开始"
+	default:
+		status = "未知"
+	}
 	templateParas := []string{
 		strconv.Itoa(eurBuildRaw.Body.Build),
-		topicArray[len(topicArray)-1],
+		status,
 		eurBuildRaw.Body.Owner,
 		eurBuildRaw.Body.Copr,
 		strconv.Itoa(eurBuildRaw.Body.Build),
@@ -76,11 +85,11 @@ func sendHWCloudMessage(eurBuildRaw dto.EurBuildMessageRaw, push bo.PushConfig) 
 	return pushSdk.SendHWCloudMessage(masConfig, templateParas, push.PushAddress)
 }
 
-func sendInnerMessage(eurBuildEvent dto.CloudEvents, config bo.SubscribePushConfig) dto.PushResult {
+func sendInnerMessage(eurBuildEvent dto.CloudEvents, config bo.SubscribeConfig) dto.PushResult {
 	return eurBuildEvent.SendInnerMessage(config.RecipientId)
 }
 
-func insertData(eurBuildEvent dto.CloudEvents, flatRaw map[string]interface{}, push bo.PushConfig, recipient string, result dto.PushResult) {
+func insertData(eurBuildEvent dto.CloudEvents, flatRaw map[string]interface{}, push bo.PushCfg, recipient string, result dto.PushResult) {
 	stringifyMap := utils.StringifyMap(flatRaw)
 	insert := `insert into message_push_record (recipient_id, time_uuid, created_at, event_data, event_data_content_type,
                                  event_data_schema, event_id, event_source, event_source_url, event_spec_version,

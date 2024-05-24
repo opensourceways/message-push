@@ -6,7 +6,7 @@ import (
 	cloudevents "github.com/cloudevents/sdk-go/v2"
 	"github.com/opensourceways/message-push/common/postgresql"
 	"github.com/opensourceways/message-push/models/bo"
-	do "github.com/opensourceways/message-push/models/do"
+	"github.com/opensourceways/message-push/models/do"
 	"time"
 )
 
@@ -24,14 +24,14 @@ func (event CloudEvents) Message() ([]byte, error) {
 	return json.Marshal(event)
 }
 
-func (event CloudEvents) GetSubscribe() []bo.SubscribePushConfig {
+func (event CloudEvents) GetSubscribe() []bo.SubscribeConfig {
 	subscribePushConfigs := event.getSubscribeFromDB()
 	return subscribePushConfigs
 }
 
-func (event CloudEvents) getSubscribeFromDB() []bo.SubscribePushConfig {
+func (event CloudEvents) getSubscribeFromDB() []bo.SubscribeConfig {
 	fmt.Println(event)
-	var subscribePushConfigs []bo.SubscribePushConfig
+	var subscribePushConfigs []bo.SubscribeConfig
 	postgresql.DB().Raw(
 		`select 
        sc.recipient_id,

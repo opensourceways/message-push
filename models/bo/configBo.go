@@ -5,7 +5,7 @@ import (
 	"gorm.io/datatypes"
 )
 
-type SubscribePushConfig struct {
+type SubscribeConfig struct {
 	RecipientId string          `gorm:"column:recipient_id"`
 	Source      string          `gorm:"column:source"`
 	EventType   string          `gorm:"column:event_type"`
@@ -14,7 +14,7 @@ type SubscribePushConfig struct {
 	ModeFilter  datatypes.JSON  `gorm:"column:mode_filter"`
 }
 
-type PushConfig struct {
+type PushCfg struct {
 	PushType    string `gorm:"column:pushType" json:"push_type"`
 	PushAddress string `gorm:"column:push_address" json:"push_address"`
 }
