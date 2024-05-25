@@ -7,6 +7,7 @@ import (
 	"github.com/opensourceways/message-push/common/postgresql"
 	"github.com/opensourceways/message-push/config"
 	"github.com/opensourceways/message-push/service"
+	"github.com/opensourceways/message-push/utils"
 	"github.com/opensourceways/server-common-lib/logrusutil"
 	"github.com/sirupsen/logrus"
 	"os"
@@ -49,10 +50,8 @@ func main() {
 }
 
 func initConfig(cfg *config.Config) {
-	pgCfg := postgresql.NewTestConfig()
-	pgCfg.SetDefault()
-	cfg.Postgresql = pgCfg
-	cfg.Kafka.SetDefault()
-	cassandraCfg := cassandra.NewTestConfig()
-	cfg.Cassandra = cassandraCfg
+	if err := utils.LoadFromYaml("config/conf.yaml", cfg); err != nil {
+		logrus.Error("Config初始化失败, err:", err)
+		return
+	}
 }

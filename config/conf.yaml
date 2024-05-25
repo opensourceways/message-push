@@ -1,0 +1,25 @@
+kafka:
+  address: 182.160.6.195:9094
+  version: 2.3.0
+  mq_cert:
+  user_name:
+  password:
+  algorithm:
+  skip_cert_verify:
+
+postgresql:
+  host: 49.0.247.41
+  user: message_center
+  port: 30051
+  pwd: fG82Ab++h6HMTg==
+  database: test_message_center
+  life: 1000
+  max_conn: 500
+  max_idle: 250
+
+cassandra:
+  host: 121.36.249.82
+  user: rwuser
+  port: 8635
+  pwd: J#nTrLmeytdg7Jsn
+  keyspace: message_center

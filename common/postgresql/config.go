@@ -12,28 +12,16 @@ import (
 
 // Config represents the configuration for PostgreSQL.
 type Config struct {
-	Host    string    `json:"host"     required:"true"`
-	User    string    `json:"user"     required:"true"`
-	Pwd     string    `json:"pwd"      required:"true"`
-	Name    string    `json:"name"     required:"true"`
-	Port    int       `json:"port"     required:"true"`
-	Life    int       `json:"life"     required:"true"` // the unit is minute
-	MaxConn int       `json:"max_conn" required:"true"`
-	MaxIdle int       `json:"max_idle" required:"true"`
-	Dbcert  string    `json:"cert"`
-	Code    errorCode `json:"error_code"`
-}
-
-func NewTestConfig() Config {
-	pgCfg := Config{
-		Host: "49.0.247.41",
-		User: "message_center",
-		Port: 30051,
-		Pwd:  "fG82Ab++h6HMTg==",
-		Name: "test_message_center",
-		Life: 1000,
-	}
-	return pgCfg
+	Host     string    `json:"host"     required:"true"`
+	User     string    `json:"user"     required:"true"`
+	Pwd      string    `json:"pwd"      required:"true"`
+	Database string    `json:"database"     required:"true"`
+	Port     int       `json:"port"     required:"true"`
+	Life     int       `json:"life"     required:"true"` // the unit is minute
+	MaxConn  int       `json:"max_conn" required:"true"`
+	MaxIdle  int       `json:"max_idle" required:"true"`
+	Dbcert   string    `json:"cert"`
+	Code     errorCode `json:"error_code"`
 }
 
 // SetDefault sets the default values for the Config.
@@ -66,12 +54,12 @@ func (p *Config) dsn() string {
 	if p.Dbcert != "" {
 		return fmt.Sprintf(
 			"host=%v user=%v password=%v dbname=%v port=%v sslmode=verify-ca TimeZone=Asia/Shanghai sslrootcert=%v",
-			p.Host, p.User, p.Pwd, p.Name, p.Port, p.Dbcert,
+			p.Host, p.User, p.Pwd, p.Database, p.Port, p.Dbcert,
 		)
 	} else {
 		return fmt.Sprintf(
 			"host=%v user=%v password=%v dbname=%v port=%v sslmode=disable TimeZone=Asia/Shanghai",
-			p.Host, p.User, p.Pwd, p.Name, p.Port,
+			p.Host, p.User, p.Pwd, p.Database, p.Port,
 		)
 	}
 }

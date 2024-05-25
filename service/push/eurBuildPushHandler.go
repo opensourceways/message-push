@@ -6,6 +6,7 @@ import (
 	"github.com/gocql/gocql"
 	"github.com/opensourceways/message-push/common/cassandra"
 	"github.com/opensourceways/message-push/common/pushSdk"
+	"github.com/opensourceways/message-push/config"
 	"github.com/opensourceways/message-push/models/bo"
 	"github.com/opensourceways/message-push/models/dto"
 	"github.com/opensourceways/message-push/utils"
@@ -63,7 +64,6 @@ func publishMessage(event dto.CloudEvents) {
 }
 
 func sendHWCloudMessage(eurBuildRaw dto.EurBuildMessageRaw, push bo.PushCfg) dto.PushResult {
-	masConfig := pushSdk.NewTestConfig()
 	status := ""
 	switch eurBuildRaw.Body.Status {
 	case 0:
@@ -82,7 +82,7 @@ func sendHWCloudMessage(eurBuildRaw dto.EurBuildMessageRaw, push bo.PushCfg) dto
 		eurBuildRaw.Body.Copr,
 		strconv.Itoa(eurBuildRaw.Body.Build),
 	}
-	return pushSdk.SendHWCloudMessage(masConfig, templateParas, push.PushAddress)
+	return pushSdk.SendHWCloudMessage(config.EurBuildConfigInstance.HWCloudMsgConfig, templateParas, push.PushAddress)
 }
 
 func sendInnerMessage(eurBuildEvent dto.CloudEvents, config bo.SubscribeConfig) dto.PushResult {

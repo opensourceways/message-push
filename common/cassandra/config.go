@@ -13,14 +13,3 @@ type Config struct {
 	Port     int    `json:"port"     required:"true"`
 	KeySpace string `json:"keySpace"     required:"true"`
 }
-
-func NewTestConfig() Config {
-	cassandraCfg := Config{
-		Host:     "121.36.249.82",
-		User:     "rwuser",
-		Port:     8635,
-		Pwd:      "J#nTrLmeytdg7Jsn",
-		KeySpace: "message_center",
-	}
-	return cassandraCfg
-}
