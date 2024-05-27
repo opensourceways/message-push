@@ -6,7 +6,10 @@ const Succeed = "succeed"
 const Failed = "failed"
 
 type PushResult struct {
-	Res    string
-	Remark string
-	Time   time.Time
+	RecipientId string `json:"recipient_id"`
+	PushAddress string `json:"push_address"`
+	PushType    string `json:"push_type"`
+	Res         string
+	Remark      string
+	Time        time.Time
 }

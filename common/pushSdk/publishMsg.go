@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/tls"
 	"fmt"
+	"github.com/opensourceways/message-push/models/bo"
 	"github.com/opensourceways/message-push/models/dto"
 	core "huaweicloud.com/apig/signer"
 	"io/ioutil"
@@ -13,7 +14,7 @@ import (
 	"time"
 )
 
-func SendHWCloudMessage(msgConfig HWCloudMsgConfig, templateParas []string, phoneNum string) dto.PushResult {
+func SendHWCloudMessage(msgConfig HWCloudMsgConfig, templateParas []string, recipient bo.RecipientConfig) dto.PushResult {
 	//必填,请参考"开发准备"获取如下数据,替换为实际值
 	appInfo := core.Signer{
 		// 认证用的appKey和appSecret硬编码到代码中或者明文存储都有很大的安全风险，建议在配置文件或者环境变量中密文存放，使用时解密，确保安全；
@@ -29,7 +30,7 @@ func SendHWCloudMessage(msgConfig HWCloudMsgConfig, templateParas []string, phon
 	signature := msgConfig.Signature //签名名称
 
 	//必填,全局号码格式(包含国家码),示例:+86151****6789,多个号码之间用英文逗号分隔
-	receiver := phoneNum //短信接收人号码
+	receiver := recipient.Message //短信接收人号码
 
 	//选填,短信状态报告接收地址,推荐使用域名,为空或者不填表示不接收状态报告
 	statusCallBack := ""
@@ -50,9 +51,12 @@ func SendHWCloudMessage(msgConfig HWCloudMsgConfig, templateParas []string, phon
 		return dto.PushResult{Res: dto.Failed, Remark: err.Error()}
 	}
 	return dto.PushResult{
-		Res:    dto.Succeed,
-		Time:   time.Now(),
-		Remark: "succeed",
+		Res:         dto.Succeed,
+		Time:        time.Now(),
+		Remark:      "succeed",
+		RecipientId: recipient.RecipientId,
+		PushAddress: recipient.Phone,
+		PushType:    "message",
 	}
 }
 

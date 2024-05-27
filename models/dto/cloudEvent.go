@@ -24,56 +24,54 @@ func (event CloudEvents) Message() ([]byte, error) {
 	return json.Marshal(event)
 }
 
-func (event CloudEvents) GetSubscribe() []bo.SubscribeConfig {
-	subscribePushConfigs := event.getSubscribeFromDB()
+func (event CloudEvents) GetRecipient() []bo.RecipientConfig {
+	subscribePushConfigs := event.getRecipientFromDB()
 	return subscribePushConfigs
 }
 
-func (event CloudEvents) getSubscribeFromDB() []bo.SubscribeConfig {
+func (event CloudEvents) getRecipientFromDB() []bo.RecipientConfig {
 	fmt.Println(event)
-	var subscribePushConfigs []bo.SubscribeConfig
+	var subscribePushConfigs []bo.RecipientConfig
 	postgresql.DB().Raw(
-		`select 
-       sc.recipient_id,
-       sc.source,
-       sc.event_type,
-       sc.spec_version,
-       sc.mode_filter,
-       json_agg(
-               json_build_object('push_type', pc.push_type, 'push_address', pc.push_address)
-       ) push_configs
-
-from message_center.push_config pc
-         join message_center.subscribe_config sc on pc.subscribe_id = sc.id
-    and pc.is_deleted is false and sc.is_deleted = false
-where sc.event_type = ?
-  and sc.source = ?
-  and sc.spec_version  = ?
+		`select sc.mode_filter,
+       rc.recipient_id,
+       rc.mail,
+       rc.message,
+       rc.phone,
+       pc.id,
+       pc.need_message,
+       pc.need_phone,
+       pc.need_mail,
+       pc.need_inner_message
+from message_center.subscribe_config sc
+         join message_center.push_config pc
+              on sc.id = pc.subscribe_id
+         join message_center.recipient_config rc on pc.recipient_id = rc.recipient_id
+where sc.source = ?
   and sc.is_deleted = false
-group by 
-		sc.recipient_id,
-		sc.source,
-		sc.event_type,
-		sc.spec_version,
-		sc.mode_filter`,
-		event.Type(), event.Source(), event.SpecVersion(),
+  and pc.is_deleted = false
+  and rc.is_deleted = false`,
+		event.Source(),
 	).Scan(&subscribePushConfigs)
 	return subscribePushConfigs
 }
 
-func (event CloudEvents) SendInnerMessage(recipientId string) PushResult {
+func (event CloudEvents) SendInnerMessage(recipient bo.RecipientConfig) PushResult {
 	innerMessageDO := do.InnerMessageDO{
 		EventId:     event.ID(),
 		Source:      event.Source(),
-		RecipientId: recipientId,
+		RecipientId: recipient.RecipientId,
 	}
-	if postgresql.DB().Model(&innerMessageDO).Where("recipient_id=?", recipientId, "source=?", innerMessageDO.Source, "event_id = ?", innerMessageDO.EventId).Updates(&innerMessageDO).RowsAffected == 0 {
+	if postgresql.DB().Model(&innerMessageDO).Where("recipient_id=?", recipient.RecipientId, "source=?", innerMessageDO.Source, "event_id = ?", innerMessageDO.EventId).Updates(&innerMessageDO).RowsAffected == 0 {
 		postgresql.DB().Create(&innerMessageDO)
 	}
 
 	return PushResult{
-		Res:    Succeed,
-		Time:   time.Now(),
-		Remark: "succeed",
+		Res:         Succeed,
+		Time:        time.Now(),
+		Remark:      "succeed",
+		RecipientId: recipient.RecipientId,
+		PushType:    "inner message",
+		PushAddress: "",
 	}
 }

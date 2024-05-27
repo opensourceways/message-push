@@ -1,7 +1,6 @@
 package push
 
 import (
-	"context"
 	"encoding/json"
 	"github.com/gocql/gocql"
 	"github.com/opensourceways/message-push/common/cassandra"
@@ -10,7 +9,6 @@ import (
 	"github.com/opensourceways/message-push/models/bo"
 	"github.com/opensourceways/message-push/models/dto"
 	"github.com/opensourceways/message-push/utils"
-	"github.com/sirupsen/logrus"
 	"github.com/todocoder/go-stream/stream"
 	"strconv"
 	"time"
@@ -29,41 +27,31 @@ func Handle(payload []byte, _ map[string]string) error {
 func publishMessage(event dto.CloudEvents) {
 	var eurBuildRaw dto.EurBuildMessageRaw
 	_ = json.Unmarshal(event.Data(), &eurBuildRaw)
-	subscribes := event.GetSubscribe()
-	if subscribes == nil || len(subscribes) == 0 {
+	recipients := event.GetRecipient()
+	if recipients == nil || len(recipients) == 0 {
 		return
 	}
 	flatRaw := eurBuildRaw.Flatten()
-	stream.Of(subscribes...).Filter(
-		func(item bo.SubscribeConfig) bool {
-			if item.ModeFilter == nil {
+	stream.Of(recipients...).Filter(
+		func(recipient bo.RecipientConfig) bool {
+			if recipient.ModeFilter == nil {
 				return true
 			}
-			return utils.ModeFilter(flatRaw, item.ModeFilter)
+			return utils.ModeFilter(flatRaw, recipient.ModeFilter)
 		},
-	).ForEach(func(item bo.SubscribeConfig) {
-		var cfg []bo.PushCfg
-		_ = json.Unmarshal(item.PushConfigs, &cfg)
-		for _, push := range cfg {
-			switch push.PushType {
-			case "inner_message":
-				res := sendInnerMessage(event, item)
-				insertData(event, flatRaw, push, item.RecipientId, res)
-			case "phone":
-				context.TODO()
-			case "message":
-				res := sendHWCloudMessage(eurBuildRaw, push)
-				insertData(event, flatRaw, push, item.RecipientId, res)
-			case "api":
-				context.TODO()
-			default:
-				logrus.Info("不支持的推送类型:", push.PushType)
-			}
+	).ForEach(func(recipient bo.RecipientConfig) {
+		if recipient.NeedMessage {
+			res := sendHWCloudMessage(eurBuildRaw, recipient)
+			insertData(event, flatRaw, res)
+		}
+		if recipient.NeedInnerMessage {
+			res := sendInnerMessage(event, recipient)
+			insertData(event, flatRaw, res)
 		}
 	})
 }
 
-func sendHWCloudMessage(eurBuildRaw dto.EurBuildMessageRaw, push bo.PushCfg) dto.PushResult {
+func sendHWCloudMessage(eurBuildRaw dto.EurBuildMessageRaw, recipient bo.RecipientConfig) dto.PushResult {
 	status := ""
 	switch eurBuildRaw.Body.Status {
 	case 0:
@@ -82,14 +70,14 @@ func sendHWCloudMessage(eurBuildRaw dto.EurBuildMessageRaw, push bo.PushCfg) dto
 		eurBuildRaw.Body.Copr,
 		strconv.Itoa(eurBuildRaw.Body.Build),
 	}
-	return pushSdk.SendHWCloudMessage(config.EurBuildConfigInstance.HWCloudMsgConfig, templateParas, push.PushAddress)
+	return pushSdk.SendHWCloudMessage(config.EurBuildConfigInstance.HWCloudMsgConfig, templateParas, recipient)
 }
 
-func sendInnerMessage(eurBuildEvent dto.CloudEvents, config bo.SubscribeConfig) dto.PushResult {
-	return eurBuildEvent.SendInnerMessage(config.RecipientId)
+func sendInnerMessage(eurBuildEvent dto.CloudEvents, recipient bo.RecipientConfig) dto.PushResult {
+	return eurBuildEvent.SendInnerMessage(recipient)
 }
 
-func insertData(eurBuildEvent dto.CloudEvents, flatRaw map[string]interface{}, push bo.PushCfg, recipient string, result dto.PushResult) {
+func insertData(eurBuildEvent dto.CloudEvents, flatRaw map[string]interface{}, result dto.PushResult) {
 	stringifyMap := utils.StringifyMap(flatRaw)
 	insert := `insert into message_push_record (recipient_id, time_uuid, created_at, event_data, event_data_content_type,
                                  event_data_schema, event_id, event_source, event_source_url, event_spec_version,
@@ -100,7 +88,7 @@ values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);
 	err := cassandra.Session().
 		Query(
 			insert,
-			recipient,
+			result.RecipientId,
 			gocql.TimeUUID(),
 			time.Now(),
 			stringifyMap,
@@ -113,10 +101,10 @@ values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);
 			eurBuildEvent.Time(),
 			eurBuildEvent.Type(),
 			eurBuildEvent.Extensions()["user"].(string),
-			push.PushAddress,
+			result.PushAddress,
 			result.Res,
 			result.Time,
-			push.PushType,
+			result.PushType,
 			result.Remark,
 			eurBuildEvent.Extensions()["title"].(string),
 			eurBuildEvent.Extensions()["summary"].(string),

@@ -1,20 +1,17 @@
 package bo
 
 import (
-	"encoding/json"
 	"gorm.io/datatypes"
 )
 
-type SubscribeConfig struct {
-	RecipientId string          `gorm:"column:recipient_id"`
-	Source      string          `gorm:"column:source"`
-	EventType   string          `gorm:"column:event_type"`
-	SpecVersion string          `gorm:"column:spec_version"`
-	PushConfigs json.RawMessage `gorm:"type:json;column:push_configs" json:"push_configs"`
-	ModeFilter  datatypes.JSON  `gorm:"column:mode_filter"`
-}
-
-type PushCfg struct {
-	PushType    string `gorm:"column:pushType" json:"push_type"`
-	PushAddress string `gorm:"column:push_address" json:"push_address"`
+type RecipientConfig struct {
+	RecipientId      string         `gorm:"column:recipient_id"`
+	Mail             string         `gorm:"column:mail"`
+	Message          string         `gorm:"column:message"`
+	Phone            string         `gorm:"column:phone"`
+	ModeFilter       datatypes.JSON `gorm:"column:mode_filter"`
+	NeedMessage      bool           `gorm:"column:need_message"`
+	NeedPhone        bool           `gorm:"column:need_phone"`
+	NeedMail         bool           `gorm:"column:need_mail"`
+	NeedInnerMessage bool           `gorm:"column:need_inner_message"`
 }
