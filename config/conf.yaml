@@ -1,11 +1,11 @@
 kafka:
-  address: 182.160.6.195:9094
-  version: 2.3.0
-  mq_cert:
-  user_name:
-  password:
-  algorithm:
-  skip_cert_verify:
+  address: 123.60.153.128:9095,123.60.85.204:9095,122.9.191.180:9095
+  version: 2.7.0
+  mq_cert: secrets/kafka/phy_ca.crt
+  user_name: kafka-test
+  password: $t@D2awGMtpDvKJH
+  algorithm: sha512
+  skip_cert_verify: true
 
 postgresql:
   host: 49.0.247.41

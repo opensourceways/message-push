@@ -7,6 +7,7 @@ import (
 	"github.com/opensourceways/message-push/common/postgresql"
 	"github.com/opensourceways/message-push/models/bo"
 	"github.com/opensourceways/message-push/models/do"
+	"gorm.io/gorm/clause"
 	"time"
 )
 
@@ -62,9 +63,10 @@ func (event CloudEvents) SendInnerMessage(recipient bo.RecipientConfig) PushResu
 		Source:      event.Source(),
 		RecipientId: recipient.RecipientId,
 	}
-	if postgresql.DB().Model(&innerMessageDO).Where("recipient_id=?", recipient.RecipientId, "source=?", innerMessageDO.Source, "event_id = ?", innerMessageDO.EventId).Updates(&innerMessageDO).RowsAffected == 0 {
-		postgresql.DB().Create(&innerMessageDO)
-	}
+	postgresql.DB().Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "recipient_id"}, {Name: "source"}, {Name: "event_id"}},
+		DoNothing: true,
+	}).Create(&innerMessageDO)
 
 	return PushResult{
 		Res:         Succeed,
