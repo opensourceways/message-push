@@ -46,7 +46,7 @@ func main() {
 	go func() {
 		service.SubscribeEurEvent()
 	}()
-	<-sig
+	select {}
 }
 
 func initConfig(cfg *config.Config) {

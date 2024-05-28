@@ -9,6 +9,7 @@ import (
 	"github.com/opensourceways/message-push/models/bo"
 	"github.com/opensourceways/message-push/models/dto"
 	"github.com/opensourceways/message-push/utils"
+	"github.com/sirupsen/logrus"
 	"github.com/todocoder/go-stream/stream"
 	"strconv"
 	"time"
@@ -43,9 +44,11 @@ func publishMessage(event dto.CloudEvents) {
 		if recipient.NeedMessage {
 			res := sendHWCloudMessage(eurBuildRaw, recipient)
 			insertData(event, flatRaw, res)
+			logrus.Info("send message ", event.ID()+" success")
 		}
 		if recipient.NeedInnerMessage {
 			res := sendInnerMessage(event, recipient)
+			logrus.Info("send inner message ", event.ID()+" success")
 			insertData(event, flatRaw, res)
 		}
 	})
