@@ -1,0 +1,89 @@
+package pushSdk
+
+import (
+	"bytes"
+	"fmt"
+	"github.com/opensourceways/message-push/models/bo"
+	"github.com/opensourceways/message-push/models/dto"
+	"github.com/sirupsen/logrus"
+	"html/template"
+	"net/smtp"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
+)
+
+type EmailConfig struct {
+	SMTPHost     string `json:"smtp_host"`
+	SMTPPassword string `json:"smtp_password"`
+	SMTPPort     int    `json:"smtp_port"`
+	SMTPSender   string `json:"smtp_sender"`
+	SMTPUsername string `json:"smtp_username"`
+}
+
+type EmailParams struct {
+	Body      string
+	Code      string
+	Commenter string
+	Link      string
+	Number    string
+	Receiver  string
+	Repo      string
+	State     string
+	Title     string
+}
+
+func SendEmail(title string, summary string, recipient bo.RecipientConfig, config EmailConfig) dto.PushResult {
+	err := sendEmail(recipient.Mail, title, summary, config)
+	if err != nil {
+		return dto.PushResult{Res: dto.Failed, Remark: err.Error()}
+	}
+	return dto.PushResult{
+		Res:         dto.Succeed,
+		Time:        time.Now(),
+		Remark:      "succeed",
+		RecipientId: recipient.RecipientId,
+		PushAddress: recipient.Phone,
+		PushType:    "mail",
+	}
+}
+
+func loadTemplate(path string, data interface{}) string {
+	content, err := os.ReadFile(path)
+	name := filepath.Base(path)
+	tmpl, err := template.New(name).Parse(string(content))
+	if err != nil {
+		logrus.Error(err)
+		return ""
+	}
+	renderString, err := renderTemplate(tmpl, data)
+	if err != nil {
+		logrus.Error(err)
+		return ""
+	}
+	return renderString
+}
+
+func renderTemplate(tmpl *template.Template, data interface{}) (string, error) {
+	buf := new(bytes.Buffer)
+	err := tmpl.Execute(buf, data)
+	if err != nil {
+		return "", fmt.Errorf("failed to execute template")
+	}
+	return buf.String(), nil
+}
+
+func sendEmail(receiver, subject, htmlBody string, config EmailConfig) error {
+	auth := smtp.PlainAuth("", config.SMTPUsername, config.SMTPPassword,
+		config.SMTPHost)
+	contentType := "Content-Type: text/html; charset=UTF-8"
+	msg := []byte("To: " + receiver + "\r\nFrom: " + config.SMTPSender + ">\r\nSubject: " + subject + "\r\n" +
+		contentType + "\r\n\r\n" + htmlBody)
+	err := smtp.SendMail(fmt.Sprintf("%v:%v", config.SMTPHost, config.SMTPPort), auth,
+		config.SMTPUsername, strings.Split(receiver, ";"), msg)
+	if err != nil {
+		return err
+	}
+	return nil
+}

@@ -46,6 +46,11 @@ func publishMessage(event dto.CloudEvents) {
 			insertData(event, flatRaw, res)
 			logrus.Info("send message ", event.ID()+" success")
 		}
+		if recipient.NeedMail {
+			res := sendMail(event, recipient)
+			insertData(event, flatRaw, res)
+			logrus.Info("send mail ", event.ID()+" success")
+		}
 		if recipient.NeedInnerMessage {
 			res := sendInnerMessage(event, recipient)
 			logrus.Info("send inner message ", event.ID()+" success")
@@ -78,6 +83,11 @@ func sendHWCloudMessage(eurBuildRaw dto.EurBuildMessageRaw, recipient bo.Recipie
 
 func sendInnerMessage(eurBuildEvent dto.CloudEvents, recipient bo.RecipientConfig) dto.PushResult {
 	return eurBuildEvent.SendInnerMessage(recipient)
+}
+
+func sendMail(eurBuildEvent dto.CloudEvents, recipient bo.RecipientConfig) dto.PushResult {
+	return pushSdk.SendEmail(eurBuildEvent.Extensions()["title"].(string),
+		eurBuildEvent.Extensions()["summary"].(string), recipient, config.EurBuildConfigInstance.EmailConfig)
 }
 
 func insertData(eurBuildEvent dto.CloudEvents, flatRaw map[string]interface{}, result dto.PushResult) {
