@@ -44,6 +44,10 @@ func main() {
 	}
 
 	go func() {
+		service.SubscribeGiteeIssueEvent()
+	}()
+
+	go func() {
 		service.SubscribeEurEvent()
 	}()
 	select {}

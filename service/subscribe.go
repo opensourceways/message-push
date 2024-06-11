@@ -8,5 +8,10 @@ import (
 
 func SubscribeEurEvent() {
 	config.InitEurBuildConfig()
-	_ = kfklib.Subscribe(config.EurBuildConfigInstance.Kafka.Group, push.Handle, []string{config.EurBuildConfigInstance.Kafka.Topic})
+	_ = kfklib.Subscribe(config.EurBuildConfigInstance.Kafka.Group, push.EurBuildHandle, []string{config.EurBuildConfigInstance.Kafka.Topic})
+}
+
+func SubscribeGiteeIssueEvent() {
+	config.InitEurBuildConfig()
+	_ = kfklib.Subscribe(config.EurBuildConfigInstance.Kafka.Group, push.GiteeIssueHandle, []string{config.EurBuildConfigInstance.Kafka.Topic})
 }

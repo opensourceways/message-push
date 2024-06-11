@@ -9,24 +9,24 @@ import (
 	"github.com/opensourceways/message-push/utils"
 	"github.com/sirupsen/logrus"
 	"github.com/todocoder/go-stream/stream"
-	"strconv"
 )
 
-type EurBuildHandler struct{}
+type GiteeIssueHandler struct{}
 
-func EurBuildHandle(payload []byte, _ map[string]string) error {
-	var handler EurBuildHandler
-	event := dto.NewCloudEvents()
-	msgBodyErr := json.Unmarshal(payload, &event)
+func GiteeIssueHandle(payload []byte, _ map[string]string) error {
+	var handler GiteeIssueHandler
+
+	giteeIssueEvent := dto.NewCloudEvents()
+	msgBodyErr := json.Unmarshal(payload, &giteeIssueEvent)
 	if msgBodyErr != nil {
 		return msgBodyErr
 	}
-	handler.publishMessage(event)
+	handler.publishMessage(giteeIssueEvent)
 	return nil
 }
 
-func (handler *EurBuildHandler) publishMessage(event dto.CloudEvents) {
-	var raw dto.EurBuildMessageRaw
+func (handler *GiteeIssueHandler) publishMessage(event dto.CloudEvents) {
+	var raw dto.GiteeIssueRaw
 	_ = json.Unmarshal(event.Data(), &raw)
 	recipients := event.GetRecipient()
 	if recipients == nil || len(recipients) == 0 {
@@ -59,33 +59,17 @@ func (handler *EurBuildHandler) publishMessage(event dto.CloudEvents) {
 	})
 }
 
-func (handler *EurBuildHandler) sendHWCloudMessage(raw dto.EurBuildMessageRaw, recipient bo.RecipientConfig) dto.PushResult {
-	status := ""
-	switch raw.Body.Status {
-	case 0:
-		status = "失败"
-	case 1:
-		status = "成功"
-	case 3:
-		status = "开始"
-	default:
-		status = "未知"
-	}
-	templateParas := []string{
-		strconv.Itoa(raw.Body.Build),
-		status,
-		raw.Body.Owner,
-		raw.Body.Copr,
-		strconv.Itoa(raw.Body.Build),
-	}
-	return pushSdk.SendHWCloudMessage(config.EurBuildConfigInstance.HWCloudMsgConfig, templateParas, recipient)
+func (handler *GiteeIssueHandler) sendHWCloudMessage(raw dto.GiteeIssueRaw, recipient bo.RecipientConfig) dto.PushResult {
+
+	var templateParas []string
+	return pushSdk.SendHWCloudMessage(config.GiteeConfigInstance.HWCloudMsgConfig, templateParas, recipient)
 }
 
-func (handler *EurBuildHandler) sendInnerMessage(event dto.CloudEvents, recipient bo.RecipientConfig) dto.PushResult {
+func (handler *GiteeIssueHandler) sendInnerMessage(event dto.CloudEvents, recipient bo.RecipientConfig) dto.PushResult {
 	return event.SendInnerMessage(recipient)
 }
 
-func (handler *EurBuildHandler) sendMail(event dto.CloudEvents, recipient bo.RecipientConfig) dto.PushResult {
+func (handler *GiteeIssueHandler) sendMail(event dto.CloudEvents, recipient bo.RecipientConfig) dto.PushResult {
 	return pushSdk.SendEmail(event.Extensions()["title"].(string),
 		event.Extensions()["summary"].(string), recipient, config.EurBuildConfigInstance.EmailConfig)
 }
