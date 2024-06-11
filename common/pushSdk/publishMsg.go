@@ -14,6 +14,15 @@ import (
 	"time"
 )
 
+type HWCloudMsgConfig struct {
+	AppInfoKey    string `json:"app_info_Key"`
+	AppInfoSecret string `json:"app_info_secret"`
+	ApiAddress    string `json:"api_address"`
+	Sender        string `json:"sender"`
+	TemplateId    string `json:"template_id"`
+	Signature     string `json:"signature"`
+}
+
 func SendHWCloudMessage(msgConfig HWCloudMsgConfig, templateParas []string, recipient bo.RecipientConfig) dto.PushResult {
 	//必填,请参考"开发准备"获取如下数据,替换为实际值
 	appInfo := core.Signer{

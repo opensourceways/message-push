@@ -10,3 +10,9 @@ hw_cloud_msg:
   template_id: 33fabc75615647a886a87daa7064f766
   signature: 开源社区
 
+email:
+  smtp_host: smtp.163.com
+  smtp_password: ZKZOFYHNEJEAYVXK
+  smtp_port: 25
+  smtp_sender: openeuler
+  smtp_username: shishupei2024@163.com

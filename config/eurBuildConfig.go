@@ -12,6 +12,7 @@ var EurBuildConfigInstance EurBuildConfig
 type EurBuildConfig struct {
 	Kafka            kafka.ConsumeConfig      `json:"kafka"`
 	HWCloudMsgConfig pushSdk.HWCloudMsgConfig `json:"hw_cloud_msg"`
+	EmailConfig      pushSdk.EmailConfig      `json:"email"`
 }
 
 func InitEurBuildConfig() {
