@@ -15,7 +15,6 @@ type GiteeIssueHandler struct{}
 
 func GiteeIssueHandle(payload []byte, _ map[string]string) error {
 	var handler GiteeIssueHandler
-
 	giteeIssueEvent := dto.NewCloudEvents()
 	msgBodyErr := json.Unmarshal(payload, &giteeIssueEvent)
 	if msgBodyErr != nil {
@@ -42,9 +41,7 @@ func (handler *GiteeIssueHandler) publishMessage(event dto.CloudEvents) {
 		},
 	).ForEach(func(recipient bo.RecipientConfig) {
 		if recipient.NeedMessage {
-			res := handler.sendHWCloudMessage(raw, recipient)
-			pushSdk.InsertData(event, flatRaw, res)
-			logrus.Info("send message ", event.ID()+" success")
+			//TODO
 		}
 		if recipient.NeedMail {
 			res := handler.sendMail(event, recipient)
@@ -60,9 +57,8 @@ func (handler *GiteeIssueHandler) publishMessage(event dto.CloudEvents) {
 }
 
 func (handler *GiteeIssueHandler) sendHWCloudMessage(raw dto.GiteeIssueRaw, recipient bo.RecipientConfig) dto.PushResult {
-
-	var templateParas []string
-	return pushSdk.SendHWCloudMessage(config.GiteeConfigInstance.HWCloudMsgConfig, templateParas, recipient)
+	//TODO
+	return dto.PushResult{}
 }
 
 func (handler *GiteeIssueHandler) sendInnerMessage(event dto.CloudEvents, recipient bo.RecipientConfig) dto.PushResult {

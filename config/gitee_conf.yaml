@@ -1,5 +1,5 @@
 kafka:
-  topic: eur_build_event
+  topic: gitee_issue_event
   group: message-transfer
 
 hw_cloud_msg:
