@@ -2,7 +2,6 @@ package config
 
 import (
 	"github.com/opensourceways/message-push/common/kafka"
-	"github.com/opensourceways/message-push/common/pushSdk"
 	"github.com/opensourceways/message-push/utils"
 	"github.com/sirupsen/logrus"
 )
@@ -10,9 +9,13 @@ import (
 var GiteeConfigInstance GiteeConfig
 
 type GiteeConfig struct {
-	Kafka            kafka.ConsumeConfig      `json:"kafka"`
-	HWCloudMsgConfig pushSdk.HWCloudMsgConfig `json:"hw_cloud_msg"`
-	EmailConfig      pushSdk.EmailConfig      `json:"email"`
+	Kafka struct {
+		Issue kafka.ConsumeConfig `yaml:"issue"`
+		Push  kafka.ConsumeConfig `yaml:"push"`
+		PR    kafka.ConsumeConfig `yaml:"pr"`
+		Note  kafka.ConsumeConfig `yaml:"note"`
+	} `yaml:"kafka"`
+	Push PushConfig `yaml:"push"`
 }
 
 func InitGiteeConfig() {

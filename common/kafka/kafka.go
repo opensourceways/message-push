@@ -2,7 +2,7 @@
 Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved
 */
 
-// Package kafka provides functionality for interacting with Kafka.
+// Package kafka provides functionality for interacting with Issue.
 package kafka
 
 import (
@@ -14,10 +14,10 @@ const (
 	deaultVersion = "2.1.0"
 )
 
-// Exit is an exported variable that provides the exit function for the Kafka package.
+// Exit is an exported variable that provides the exit function for the Issue package.
 var Exit = kfklib.Exit
 
-// Config represents the configuration for Kafka.
+// Config represents the configuration for Issue.
 type Config struct {
 	kfklib.Config
 }
@@ -29,7 +29,7 @@ func (cfg *Config) SetDefault() {
 	}
 }
 
-// Init initializes the Kafka agent with the specified configuration, logger, and removeCfg flag.
+// Init initializes the Issue agent with the specified configuration, logger, and removeCfg flag.
 func Init(cfg *Config, log mq.Logger, removeCfg bool) error {
 	return kfklib.Init(&cfg.Config, log, nil, "", removeCfg)
 }

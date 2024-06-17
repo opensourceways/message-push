@@ -1,12 +1,14 @@
 module github.com/opensourceways/message-push
 
 require (
-	github.com/IBM/sarama v1.43.1
 	github.com/anshal21/json-flattener v1.0.0
 	github.com/cloudevents/sdk-go/v2 v2.15.2
 	github.com/go-playground/validator/v10 v10.19.0
+	github.com/goccy/go-json v0.10.2
 	github.com/gocql/gocql v1.6.0
+	github.com/jackc/pgx/v5 v5.6.0
 	github.com/lib/pq v1.10.9
+	github.com/opensourceways/go-gitee v0.0.0-20240305060727-0df28a4f60c0
 	github.com/opensourceways/kafka-lib v0.0.0-20240410053850-1b04ade416f1
 	github.com/opensourceways/server-common-lib v0.0.0-20240325033300-a9187b20647e
 	github.com/sirupsen/logrus v1.9.3
@@ -19,6 +21,7 @@ require (
 )
 
 require (
+	github.com/IBM/sarama v1.43.1 // indirect
 	github.com/antihax/optional v1.0.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/eapache/go-resiliency v1.6.0 // indirect
@@ -37,7 +40,6 @@ require (
 	github.com/hashicorp/go-uuid v1.0.3 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
-	github.com/jackc/pgx/v5 v5.6.0 // indirect
 	github.com/jackc/puddle/v2 v2.2.1 // indirect
 	github.com/jcmturner/aescts/v2 v2.0.0 // indirect
 	github.com/jcmturner/dnsutils/v2 v2.0.0 // indirect
@@ -51,7 +53,6 @@ require (
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
-	github.com/opensourceways/go-gitee v0.0.0-20240305060727-0df28a4f60c0 // indirect
 	github.com/pierrec/lz4/v4 v4.1.21 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/rogpeppe/go-internal v1.11.0 // indirect

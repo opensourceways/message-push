@@ -1,18 +1,17 @@
 kafka:
   topic: eur_build_event
   group: message-transfer
-
-hw_cloud_msg:
-  app_info_key: C5I7EH4iPr4xPXRNa65Qg70bATxP
-  app_info_secret: slpTMyXRJdAOldFm2bw6fxdtpoQy
-  api_address: https://smsapi.cn-south-1.myhuaweicloud.com:443/sms/batchSendSms/v1
-  sender: 8824041123653
-  template_id: 33fabc75615647a886a87daa7064f766
-  signature: 开源社区
-
-email:
-  smtp_host: smtp.163.com
-  smtp_password: ZKZOFYHNEJEAYVXK
-  smtp_port: 25
-  smtp_sender: openeuler
-  smtp_username: shishupei2024@163.com
+push:
+  message:
+    app_info_key: C5I7EH4iPr4xPXRNa65Qg70bATxP
+    app_info_secret: slpTMyXRJdAOldFm2bw6fxdtpoQy
+    api_address: https://smsapi.cn-south-1.myhuaweicloud.com:443/sms/batchSendSms/v1
+    sender: 8824041123653
+    template_id: 33fabc75615647a886a87daa7064f766
+    signature: 开源社区
+  email:
+    smtp_host: smtp.163.com
+    smtp_password: ZKZOFYHNEJEAYVXK
+    smtp_port: 25
+    smtp_sender: openeuler
+    smtp_username: shishupei2024@163.com
