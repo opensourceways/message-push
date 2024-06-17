@@ -1,6 +1,20 @@
 kafka:
-  topic: eur_build_event
-  group: message-transfer
+  issue:
+    topic: gitee_issue_event
+    group: message-transfer
+
+  push:
+    topic: gitee_push_event
+    group: message-transfer
+
+  pr:
+    topic: gitee_pr_event
+    group: message-transfer
+
+  note:
+    topic: gitee_note_event
+    group: message-transfer
+
 push:
   message:
     app_info_key: C5I7EH4iPr4xPXRNa65Qg70bATxP

@@ -1,9 +1,9 @@
 kafka:
-  address: 123.60.153.128:9095,123.60.85.204:9095,122.9.191.180:9095
-  version: 2.7.0
-  mq_cert: secrets/kafka/phy_ca.crt
+  address: 182.160.6.195:9094,159.138.150.4:9094,49.0.229.191:9094
+  version: 2.3.0
+  mq_cert:
   user_name: kafka-test
-  password: $t@D2awGMtpDvKJH
+  password:
   algorithm: sha512
   skip_cert_verify: true
 

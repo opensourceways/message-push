@@ -9,6 +9,7 @@ type InnerMessageDO struct {
 	EventId     string `gorm:"column:event_id"`
 	Source      string `gorm:"column:source"`
 	RecipientId string `gorm:"column:recipient_id"`
+	IsRead      bool   `gorm:"column:is_read"`
 }
 
 func (m *InnerMessageDO) TableName() string {

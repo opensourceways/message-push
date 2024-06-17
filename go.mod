@@ -1,12 +1,14 @@
 module github.com/opensourceways/message-push
 
 require (
-	github.com/IBM/sarama v1.43.1
 	github.com/anshal21/json-flattener v1.0.0
 	github.com/cloudevents/sdk-go/v2 v2.15.2
 	github.com/go-playground/validator/v10 v10.19.0
+	github.com/goccy/go-json v0.10.2
 	github.com/gocql/gocql v1.6.0
+	github.com/jackc/pgx/v5 v5.6.0
 	github.com/lib/pq v1.10.9
+	github.com/opensourceways/go-gitee v0.0.0-20240305060727-0df28a4f60c0
 	github.com/opensourceways/kafka-lib v0.0.0-20240410053850-1b04ade416f1
 	github.com/opensourceways/server-common-lib v0.0.0-20240325033300-a9187b20647e
 	github.com/sirupsen/logrus v1.9.3
@@ -19,6 +21,8 @@ require (
 )
 
 require (
+	github.com/IBM/sarama v1.43.1 // indirect
+	github.com/antihax/optional v1.0.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/eapache/go-resiliency v1.6.0 // indirect
 	github.com/eapache/go-xerial-snappy v0.0.0-20230731223053-c322873962e3 // indirect
@@ -27,6 +31,7 @@ require (
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-sql-driver/mysql v1.7.0 // indirect
+	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/hailocab/go-hostpool v0.0.0-20160125115350-e80d13ce29ed // indirect
@@ -35,7 +40,6 @@ require (
 	github.com/hashicorp/go-uuid v1.0.3 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
-	github.com/jackc/pgx/v5 v5.6.0 // indirect
 	github.com/jackc/puddle/v2 v2.2.1 // indirect
 	github.com/jcmturner/aescts/v2 v2.0.0 // indirect
 	github.com/jcmturner/dnsutils/v2 v2.0.0 // indirect
@@ -60,9 +64,12 @@ require (
 	go.uber.org/zap v1.10.0 // indirect
 	golang.org/x/crypto v0.23.0 // indirect
 	golang.org/x/net v0.25.0 // indirect
+	golang.org/x/oauth2 v0.12.0 // indirect
 	golang.org/x/sync v0.7.0 // indirect
 	golang.org/x/sys v0.20.0 // indirect
 	golang.org/x/text v0.15.0 // indirect
+	google.golang.org/appengine v1.6.8 // indirect
+	google.golang.org/protobuf v1.33.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gorm.io/driver/mysql v1.4.7 // indirect

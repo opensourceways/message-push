@@ -134,12 +134,12 @@ func EscapePgsqlValue(value string) string {
 func StringifyMap(data map[string]interface{}) map[string]string {
 	result := make(map[string]string)
 	for key, value := range data {
-		result[key] = toString(value)
+		result[key] = ToString(value)
 	}
 	return result
 }
 
-func toString(value interface{}) string {
+func ToString(value interface{}) string {
 	switch v := value.(type) {
 	case int:
 		return strconv.Itoa(v)

@@ -7,7 +7,6 @@ import (
 	"github.com/opensourceways/message-push/common/postgresql"
 	"github.com/opensourceways/message-push/models/bo"
 	"github.com/opensourceways/message-push/models/do"
-	"gorm.io/gorm/clause"
 	"time"
 )
 
@@ -43,16 +42,20 @@ func (event CloudEvents) getRecipientFromDB() []bo.RecipientConfig {
        pc.need_message,
        pc.need_phone,
        pc.need_mail,
-       pc.need_inner_message
+       pc.need_inner_message,
+       pt.message_template,
+       pt.mail_template
 from message_center.subscribe_config sc
          join message_center.push_config pc
               on sc.id = pc.subscribe_id
          join message_center.recipient_config rc on pc.recipient_id = rc.recipient_id
+         left join message_center.push_template pt on sc.source = pt.source and sc.event_type = pt.event_type
 where sc.source = ?
+  and sc.event_type = ?
   and sc.is_deleted = false
   and pc.is_deleted = false
   and rc.is_deleted = false`,
-		event.Source(),
+		event.Source(), event.Type(),
 	).Scan(&subscribePushConfigs)
 	return subscribePushConfigs
 }
@@ -62,18 +65,26 @@ func (event CloudEvents) SendInnerMessage(recipient bo.RecipientConfig) PushResu
 		EventId:     event.ID(),
 		Source:      event.Source(),
 		RecipientId: recipient.RecipientId,
+		IsRead:      false,
 	}
-	postgresql.DB().Clauses(clause.OnConflict{
-		Columns:   []clause.Column{{Name: "recipient_id"}, {Name: "source"}, {Name: "event_id"}},
-		DoNothing: true,
-	}).Create(&innerMessageDO)
-
-	return PushResult{
-		Res:         Succeed,
-		Time:        time.Now(),
-		Remark:      "succeed",
-		RecipientId: recipient.RecipientId,
-		PushType:    "inner message",
-		PushAddress: "",
+	res := postgresql.DB().Save(&innerMessageDO)
+	if res.Error != nil {
+		return PushResult{
+			Res:         Failed,
+			Time:        time.Now(),
+			Remark:      res.Error.Error(),
+			RecipientId: recipient.RecipientId,
+			PushType:    "inner message",
+			PushAddress: "",
+		}
+	} else {
+		return PushResult{
+			Res:         Succeed,
+			Time:        time.Now(),
+			Remark:      "succeed",
+			RecipientId: recipient.RecipientId,
+			PushType:    "inner message",
+			PushAddress: "",
+		}
 	}
 }

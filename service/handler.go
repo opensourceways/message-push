@@ -1,7 +1,7 @@
-package push
+package service
 
 import (
-	"encoding/json"
+	"github.com/goccy/go-json"
 	"github.com/opensourceways/message-push/common/pushSdk"
 	"github.com/opensourceways/message-push/config"
 	"github.com/opensourceways/message-push/models/bo"
@@ -9,29 +9,35 @@ import (
 	"github.com/opensourceways/message-push/utils"
 	"github.com/sirupsen/logrus"
 	"github.com/todocoder/go-stream/stream"
-	"strconv"
 )
 
-type EurBuildHandler struct{}
-
-func EurBuildHandle(payload []byte, _ map[string]string) error {
-	var handler EurBuildHandler
+func GiteeIssueHandle(payload []byte, _ map[string]string) error {
 	event := dto.NewCloudEvents()
 	msgBodyErr := json.Unmarshal(payload, &event)
 	if msgBodyErr != nil {
 		return msgBodyErr
 	}
-	handler.publishMessage(event)
-	return nil
+	res := handle(event, config.GiteeConfigInstance.Push)
+	return res
 }
 
-func (handler *EurBuildHandler) publishMessage(event dto.CloudEvents) {
-	var raw dto.EurBuildMessageRaw
-	_ = json.Unmarshal(event.Data(), &raw)
+func EurBuildHandle(payload []byte, _ map[string]string) error {
+	event := dto.NewCloudEvents()
+	msgBodyErr := json.Unmarshal(payload, &event)
+	if msgBodyErr != nil {
+		return msgBodyErr
+	}
+	res := handle(event, config.EurBuildConfigInstance.Push)
+	return res
+}
+
+func handle(event dto.CloudEvents, push config.PushConfig) error {
+	raw := make(dto.Raw)
+	raw.FromJson(event.Data())
 	flatRaw := raw.Flatten()
 	recipients := event.GetRecipient()
 	if recipients == nil || len(recipients) == 0 {
-		return
+		return nil
 	}
 	stream.Of(recipients...).Filter(
 		func(recipient bo.RecipientConfig) bool {
@@ -42,50 +48,34 @@ func (handler *EurBuildHandler) publishMessage(event dto.CloudEvents) {
 		},
 	).ForEach(func(recipient bo.RecipientConfig) {
 		if recipient.NeedMessage {
-			res := handler.sendHWCloudMessage(raw, recipient)
+			res := sendHWCloudMessage(raw, recipient, push.MsgConfig)
 			pushSdk.InsertData(event, flatRaw, res)
 			logrus.Info("send message ", event.ID()+" success")
 		}
 		if recipient.NeedMail {
-			res := handler.sendMail(event, recipient)
+			res := sendMail(event, recipient, push.EmailConfig)
 			pushSdk.InsertData(event, flatRaw, res)
 			logrus.Info("send mail ", event.ID()+" success")
 		}
 		if recipient.NeedInnerMessage {
-			res := handler.sendInnerMessage(event, recipient)
+			res := sendInnerMessage(event, recipient)
 			logrus.Info("send inner message ", event.ID()+" success")
 			pushSdk.InsertData(event, flatRaw, res)
 		}
 	})
+	return nil
 }
 
-func (handler *EurBuildHandler) sendHWCloudMessage(raw dto.EurBuildMessageRaw, recipient bo.RecipientConfig) dto.PushResult {
-	status := ""
-	switch raw.Body.Status {
-	case 0:
-		status = "失败"
-	case 1:
-		status = "成功"
-	case 3:
-		status = "开始"
-	default:
-		status = "未知"
-	}
-	templateParas := []string{
-		strconv.Itoa(raw.Body.Build),
-		status,
-		raw.Body.Owner,
-		raw.Body.Copr,
-		strconv.Itoa(raw.Body.Build),
-	}
-	return pushSdk.SendHWCloudMessage(config.EurBuildConfigInstance.Push.MsgConfig, templateParas, recipient)
+func sendHWCloudMessage(raw dto.Raw, recipient bo.RecipientConfig, messageConfig pushSdk.MsgConfig) dto.PushResult {
+	templateParas := raw.ToMessageArgs(recipient.MessageTemplate)
+	return pushSdk.SendHWCloudMessage(messageConfig, templateParas, recipient)
 }
 
-func (handler *EurBuildHandler) sendInnerMessage(event dto.CloudEvents, recipient bo.RecipientConfig) dto.PushResult {
+func sendInnerMessage(event dto.CloudEvents, recipient bo.RecipientConfig) dto.PushResult {
 	return event.SendInnerMessage(recipient)
 }
 
-func (handler *EurBuildHandler) sendMail(event dto.CloudEvents, recipient bo.RecipientConfig) dto.PushResult {
+func sendMail(event dto.CloudEvents, recipient bo.RecipientConfig, emailConfig pushSdk.EmailConfig) dto.PushResult {
 	return pushSdk.SendEmail(event.Extensions()["title"].(string),
-		event.Extensions()["summary"].(string), recipient, config.EurBuildConfigInstance.Push.EmailConfig)
+		event.Extensions()["summary"].(string), recipient, emailConfig)
 }
