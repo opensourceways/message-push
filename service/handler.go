@@ -2,6 +2,8 @@ package service
 
 import (
 	"github.com/goccy/go-json"
+	"github.com/gocql/gocql"
+	"github.com/opensourceways/message-push/common/cassandra"
 	"github.com/opensourceways/message-push/common/pushSdk"
 	"github.com/opensourceways/message-push/config"
 	"github.com/opensourceways/message-push/models/bo"
@@ -9,9 +11,10 @@ import (
 	"github.com/opensourceways/message-push/utils"
 	"github.com/sirupsen/logrus"
 	"github.com/todocoder/go-stream/stream"
+	"time"
 )
 
-func GiteeIssueHandle(payload []byte, _ map[string]string) error {
+func GiteeHandle(payload []byte, _ map[string]string) error {
 	event := dto.NewCloudEvents()
 	msgBodyErr := json.Unmarshal(payload, &event)
 	if msgBodyErr != nil {
@@ -49,18 +52,18 @@ func handle(event dto.CloudEvents, push config.PushConfig) error {
 	).ForEach(func(recipient bo.RecipientConfig) {
 		if recipient.NeedMessage {
 			res := sendHWCloudMessage(raw, recipient, push.MsgConfig)
-			pushSdk.InsertData(event, flatRaw, res)
+			insertData(event, flatRaw, res)
 			logrus.Info("send message ", event.ID()+" success")
 		}
 		if recipient.NeedMail {
 			res := sendMail(event, recipient, push.EmailConfig)
-			pushSdk.InsertData(event, flatRaw, res)
+			insertData(event, flatRaw, res)
 			logrus.Info("send mail ", event.ID()+" success")
 		}
 		if recipient.NeedInnerMessage {
 			res := sendInnerMessage(event, recipient)
 			logrus.Info("send inner message ", event.ID()+" success")
-			pushSdk.InsertData(event, flatRaw, res)
+			insertData(event, flatRaw, res)
 		}
 	})
 	return nil
@@ -78,4 +81,43 @@ func sendInnerMessage(event dto.CloudEvents, recipient bo.RecipientConfig) dto.P
 func sendMail(event dto.CloudEvents, recipient bo.RecipientConfig, emailConfig pushSdk.EmailConfig) dto.PushResult {
 	return pushSdk.SendEmail(event.Extensions()["title"].(string),
 		event.Extensions()["summary"].(string), recipient, emailConfig)
+}
+
+func insertData(eurBuildEvent dto.CloudEvents, flatRaw dto.FlatRaw, result dto.PushResult) {
+	stringifyMap := flatRaw.StringifyMap()
+	insert := `insert into message_push_record (recipient_id, time_uuid, created_at, event_data, event_data_content_type,
+                                 event_data_schema, event_id, event_source, event_source_url, event_spec_version,
+                                 event_time, event_type, event_user, push_address, push_state, push_time, push_type,
+                                 remark, title, summary)
+values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);
+`
+	err := cassandra.Session().
+		Query(
+			insert,
+			result.RecipientId,
+			gocql.TimeUUID(),
+			time.Now(),
+			stringifyMap,
+			eurBuildEvent.DataContentType(),
+			eurBuildEvent.DataSchema(),
+			eurBuildEvent.ID(),
+			eurBuildEvent.Source(),
+			eurBuildEvent.Extensions()["sourceurl"].(string),
+			eurBuildEvent.SpecVersion(),
+			eurBuildEvent.Time(),
+			eurBuildEvent.Type(),
+			eurBuildEvent.Extensions()["user"].(string),
+			result.PushAddress,
+			result.Res,
+			result.Time,
+			result.PushType,
+			result.Remark,
+			eurBuildEvent.Extensions()["title"].(string),
+			eurBuildEvent.Extensions()["summary"].(string),
+		).
+		Exec()
+	if err != nil {
+		panic(nil)
+		return
+	}
 }

@@ -10,5 +10,5 @@ func SubscribeEurEvent() {
 }
 
 func SubscribeGiteeIssueEvent() {
-	_ = kfklib.Subscribe(config.GiteeConfigInstance.Kafka.Issue.Group, GiteeIssueHandle, []string{config.GiteeConfigInstance.Kafka.Issue.Topic})
+	_ = kfklib.Subscribe(config.GiteeConfigInstance.Kafka.Issue.Group, GiteeHandle, []string{config.GiteeConfigInstance.Kafka.Issue.Topic, config.GiteeConfigInstance.Kafka.Push.Topic})
 }
