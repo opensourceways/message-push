@@ -8,7 +8,6 @@ import (
 	"github.com/opensourceways/message-push/config"
 	"github.com/opensourceways/message-push/models/bo"
 	"github.com/opensourceways/message-push/models/dto"
-	"github.com/opensourceways/message-push/utils"
 	"github.com/sirupsen/logrus"
 	"github.com/todocoder/go-stream/stream"
 	"time"
@@ -47,7 +46,7 @@ func handle(event dto.CloudEvents, push config.PushConfig) error {
 			if recipient.ModeFilter == nil {
 				return true
 			}
-			return utils.ModeFilter(flatRaw, recipient.ModeFilter)
+			return flatRaw.ModeFilter(recipient.ModeFilter)
 		},
 	).ForEach(func(recipient bo.RecipientConfig) {
 		if recipient.NeedMessage {

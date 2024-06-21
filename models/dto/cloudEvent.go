@@ -33,7 +33,7 @@ func (event CloudEvents) getRecipientFromDB() []bo.RecipientConfig {
 	fmt.Println(event)
 	var subscribePushConfigs []bo.RecipientConfig
 	postgresql.DB().Raw(
-		`select sc.mode_filter,
+		`select  distinct sc.mode_filter,
        rc.recipient_id,
        rc.mail,
        rc.message,

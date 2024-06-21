@@ -45,7 +45,7 @@ func main() {
 
 	go func() {
 		config.InitGiteeConfig()
-		service.SubscribeGiteeIssueEvent()
+		service.SubscribeGiteeEvent()
 	}()
 
 	go func() {
