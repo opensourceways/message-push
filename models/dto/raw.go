@@ -3,9 +3,11 @@ package dto
 import (
 	"bytes"
 	flattener "github.com/anshal21/json-flattener"
+	"github.com/go-playground/validator/v10"
 	"github.com/goccy/go-json"
 	"github.com/opensourceways/message-push/utils"
 	"github.com/sirupsen/logrus"
+	"gorm.io/datatypes"
 	"strings"
 	"text/template"
 )
@@ -38,6 +40,19 @@ func (raw *Raw) FromJson(jsonStr []byte) {
 	}
 	result = convertNumbers(result).(map[string]interface{})
 	*raw = result
+}
+
+func (flatRaw FlatRaw) ModeFilter(modeFilterJson datatypes.JSON) bool {
+	modeFilterMap := make(map[string]string)
+	_ = json.Unmarshal(modeFilterJson, &modeFilterMap)
+	validate := validator.New()
+	for k, v := range modeFilterMap {
+		err := validate.Var(flatRaw[k], v)
+		if err != nil {
+			return false
+		}
+	}
+	return true
 }
 
 func convertNumbers(data interface{}) interface{} {

@@ -21,7 +21,7 @@ push:
     app_info_secret: slpTMyXRJdAOldFm2bw6fxdtpoQy
     api_address: https://smsapi.cn-south-1.myhuaweicloud.com:443/sms/batchSendSms/v1
     sender: 8824041123653
-    template_id: 33fabc75615647a886a87daa7064f766
+    template_id: 01ad5e6b80ab4d9f8071ddf2125d520b
     signature: 开源社区
   email:
     smtp_host: smtp.163.com

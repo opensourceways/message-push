@@ -43,10 +43,10 @@ func main() {
 		return
 	}
 
-	//go func() {
-	//	config.InitGiteeConfig()
-	//	service.SubscribeGiteeIssueEvent()
-	//}()
+	go func() {
+		config.InitGiteeConfig()
+		service.SubscribeGiteeEvent()
+	}()
 
 	go func() {
 		config.InitEurBuildConfig()
