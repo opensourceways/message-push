@@ -13,5 +13,5 @@ type InnerMessageDO struct {
 }
 
 func (m *InnerMessageDO) TableName() string {
-	return "test_message_center.message_center.inner_message"
+	return "message_center.inner_message"
 }
