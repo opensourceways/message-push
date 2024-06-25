@@ -25,16 +25,14 @@ func main() {
 	cfg := new(config.Config)
 	initConfig(cfg)
 
-	defer kafka.Exit()
 	if err := postgresql.Init(&cfg.Postgresql, false); err != nil {
 		logrus.Errorf("init postgresql failed, err:%s", err.Error())
-		return
 	}
 	logrus.Info("pg初始化ok")
 
+	defer kafka.Exit()
 	if err := kafka.Init(&cfg.Kafka, log, false); err != nil {
 		logrus.Errorf("init kafka failed, err:%s", err.Error())
-		return
 	}
 	logrus.Info("kafka初始化ok")
 
@@ -42,7 +40,6 @@ func main() {
 
 	if err := cassandra.Init(&cfg.Cassandra); err != nil {
 		logrus.Errorf("init cassandra failed, err:%s", err.Error())
-		return
 	}
 	logrus.Info("cassandra初始化ok")
 
