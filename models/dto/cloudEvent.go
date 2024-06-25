@@ -2,7 +2,6 @@ package dto
 
 import (
 	"encoding/json"
-	"fmt"
 	cloudevents "github.com/cloudevents/sdk-go/v2"
 	"github.com/opensourceways/message-push/common/postgresql"
 	"github.com/opensourceways/message-push/models/bo"
@@ -30,7 +29,6 @@ func (event CloudEvents) GetRecipient() []bo.RecipientConfig {
 }
 
 func (event CloudEvents) getRecipientFromDB() []bo.RecipientConfig {
-	fmt.Println(event)
 	var subscribePushConfigs []bo.RecipientConfig
 	postgresql.DB().Raw(
 		`select  distinct sc.mode_filter,
