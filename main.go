@@ -30,11 +30,13 @@ func main() {
 		logrus.Errorf("init postgresql failed, err:%s", err.Error())
 		return
 	}
+	logrus.Info("pg初始化ok")
 
 	if err := kafka.Init(&cfg.Kafka, log, false); err != nil {
 		logrus.Errorf("init kafka failed, err:%s", err.Error())
 		return
 	}
+	logrus.Info("kafka初始化ok")
 
 	defer kfklib.Exit()
 
@@ -42,6 +44,7 @@ func main() {
 		logrus.Errorf("init cassandra failed, err:%s", err.Error())
 		return
 	}
+	logrus.Info("cassandra初始化ok")
 
 	go func() {
 		config.InitGiteeConfig()
@@ -60,4 +63,5 @@ func initConfig(cfg *config.Config) {
 		logrus.Error("Config初始化失败, err:", err)
 		return
 	}
+	logrus.Info("读取配置文件ok")
 }
