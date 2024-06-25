@@ -1,7 +1,8 @@
 package main
 
 import (
-	kfklib "github.com/opensourceways/kafka-lib/agent"
+	"flag"
+	"fmt"
 	"github.com/opensourceways/message-push/common/cassandra"
 	"github.com/opensourceways/message-push/common/kafka"
 	"github.com/opensourceways/message-push/common/postgresql"
@@ -11,55 +12,75 @@ import (
 	"github.com/opensourceways/server-common-lib/logrusutil"
 	"github.com/sirupsen/logrus"
 	"os"
-	"os/signal"
-	"syscall"
 )
 
 func main() {
-	sig := make(chan os.Signal, 1)
-	signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
-
 	logrusutil.ComponentInit("message-push")
 	log := logrus.NewEntry(logrus.StandardLogger())
 
-	cfg := new(config.Config)
-	initConfig(cfg)
+	cfg := initConfig()
 
-	logrus.Info("初始化pg,配置文件:", cfg.Postgresql)
 	if err := postgresql.Init(&cfg.Postgresql, false); err != nil {
 		logrus.Errorf("init postgresql failed, err:%s", err.Error())
+		return
 	}
-	logrus.Info("pg初始化ok")
 
-	defer kafka.Exit()
 	if err := kafka.Init(&cfg.Kafka, log, false); err != nil {
 		logrus.Errorf("init kafka failed, err:%s", err.Error())
+		return
 	}
-	logrus.Info("kafka初始化ok")
-
-	defer kfklib.Exit()
 
 	if err := cassandra.Init(&cfg.Cassandra); err != nil {
-		logrus.Errorf("init cassandra failed, err:%s", err.Error())
+		logrus.Errorf("init postgresql failed, err:%s", err.Error())
+		return
 	}
-	logrus.Info("cassandra初始化ok")
-
-	go func() {
-		config.InitGiteeConfig()
-		service.SubscribeGiteeEvent()
-	}()
 
 	go func() {
 		config.InitEurBuildConfig()
 		service.SubscribeEurEvent()
 	}()
+	go func() {
+		config.InitGiteeConfig()
+		service.SubscribeGiteeEvent()
+	}()
 	select {}
 }
 
-func initConfig(cfg *config.Config) {
-	if err := utils.LoadFromYaml("config/conf.yaml", cfg); err != nil {
-		logrus.Error("Config初始化失败, err:", err)
-		return
+func initConfig() *config.Config {
+	o, err := gatherOptions(
+		flag.NewFlagSet(os.Args[0], flag.ExitOnError),
+		os.Args[1:]...,
+	)
+	if err != nil {
+		logrus.Fatalf("new Options failed, err:%s", err.Error())
 	}
-	logrus.Info("读取配置文件ok")
+	cfg := new(config.Config)
+
+	if err := utils.LoadFromYaml(o.Config, cfg); err != nil {
+		logrus.Error("Config初始化失败, err:", err)
+	}
+	return cfg
+}
+
+/*
+获取启动参数，配置文件地址由启动参数传入
+*/
+func gatherOptions(fs *flag.FlagSet, args ...string) (Options, error) {
+	var o Options
+	fmt.Println("从环境变量接收参数", args)
+	o.AddFlags(fs)
+	err := fs.Parse(args)
+	return o, err
+}
+
+type Options struct {
+	Config         string
+	EurBuildConfig string
+	GiteeConfig    string
+}
+
+func (o *Options) AddFlags(fs *flag.FlagSet) {
+	fs.StringVar(&o.Config, "config-file", "", "Path to config file.")
+	fs.StringVar(&o.EurBuildConfig, "eur-build-config-file", "", "Path to eur-build config file.")
+	fs.StringVar(&o.GiteeConfig, "gitee-config-file", "", "Path to gitee config file.")
 }
