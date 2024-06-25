@@ -25,6 +25,7 @@ func main() {
 	cfg := new(config.Config)
 	initConfig(cfg)
 
+	logrus.Info("初始化pg,配置文件:", cfg.Postgresql)
 	if err := postgresql.Init(&cfg.Postgresql, false); err != nil {
 		logrus.Errorf("init postgresql failed, err:%s", err.Error())
 	}
