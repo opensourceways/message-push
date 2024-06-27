@@ -44,7 +44,7 @@ func SendEmail(title string, summary string, recipient bo.RecipientConfig, confi
 		Time:        time.Now(),
 		Remark:      "succeed",
 		RecipientId: recipient.RecipientId,
-		PushAddress: recipient.Phone,
+		PushAddress: recipient.Mail,
 		PushType:    "mail",
 	}
 }

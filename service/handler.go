@@ -52,12 +52,12 @@ func handle(event dto.CloudEvents, push config.PushConfig) error {
 		if recipient.NeedMessage {
 			res := sendHWCloudMessage(raw, recipient, push.MsgConfig)
 			insertData(event, flatRaw, res)
-			logrus.Info("send message ", event.ID()+" success")
+			logrus.Info("send message ", event.ID()+" success", recipient.Message)
 		}
 		if recipient.NeedMail {
 			res := sendMail(event, recipient, push.EmailConfig)
 			insertData(event, flatRaw, res)
-			logrus.Info("send mail ", event.ID()+" success")
+			logrus.Info("send mail ", event.ID()+" success，接收人", recipient.Mail)
 		}
 		if recipient.NeedInnerMessage {
 			res := sendInnerMessage(event, recipient)
