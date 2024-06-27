@@ -3,9 +3,11 @@ package pushSdk
 import (
 	"bytes"
 	"crypto/tls"
+	"errors"
 	"fmt"
 	"github.com/opensourceways/message-push/models/bo"
 	"github.com/opensourceways/message-push/models/dto"
+	"github.com/sirupsen/logrus"
 	core "huaweicloud.com/apig/signer"
 	"io/ioutil"
 	"net/http"
@@ -112,6 +114,11 @@ func post(url string, param []byte, appInfo core.Signer) (string, error) {
 	resp, err := client.Do(req)
 	if err != nil {
 		fmt.Println(err)
+		return "", err
+	}
+	if resp.StatusCode != 200 {
+		logrus.Error("发送短信失败", resp.StatusCode)
+		return "", errors.New(resp.Status)
 	}
 
 	// 获取短信响应
