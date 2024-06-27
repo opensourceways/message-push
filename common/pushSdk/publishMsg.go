@@ -120,6 +120,7 @@ func post(url string, param []byte, appInfo core.Signer) (string, error) {
 		logrus.Error("发送短信失败", resp.StatusCode)
 		return "", errors.New(resp.Status)
 	}
+	fmt.Println(resp)
 
 	// 获取短信响应
 	defer resp.Body.Close()
