@@ -18,7 +18,7 @@ func main() {
 	logrusutil.ComponentInit("message-push")
 	log := logrus.NewEntry(logrus.StandardLogger())
 
-	cfg := initConfig()
+	cfg, o := initConfig()
 
 	if err := postgresql.Init(&cfg.Postgresql, false); err != nil {
 		logrus.Errorf("init postgresql failed, err:%s", err.Error())
@@ -34,19 +34,18 @@ func main() {
 		logrus.Errorf("init postgresql failed, err:%s", err.Error())
 		return
 	}
-
 	go func() {
-		config.InitEurBuildConfig()
+		config.InitEurBuildConfig(o.EurBuildConfig)
 		service.SubscribeEurEvent()
 	}()
 	go func() {
-		config.InitGiteeConfig()
+		config.InitGiteeConfig(o.GiteeConfig)
 		service.SubscribeGiteeEvent()
 	}()
 	select {}
 }
 
-func initConfig() *config.Config {
+func initConfig() (*config.Config, *Options) {
 	o, err := gatherOptions(
 		flag.NewFlagSet(os.Args[0], flag.ExitOnError),
 		os.Args[1:]...,
@@ -59,7 +58,7 @@ func initConfig() *config.Config {
 	if err := utils.LoadFromYaml(o.Config, cfg); err != nil {
 		logrus.Error("Config初始化失败, err:", err)
 	}
-	return cfg
+	return cfg, &o
 }
 
 /*

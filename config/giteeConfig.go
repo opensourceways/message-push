@@ -18,9 +18,9 @@ type GiteeConfig struct {
 	Push PushConfig `yaml:"push"`
 }
 
-func InitGiteeConfig() {
+func InitGiteeConfig(configFile string) {
 	cfg := new(GiteeConfig)
-	if err := utils.LoadFromYaml("config/gitee_conf.yaml", cfg); err != nil {
+	if err := utils.LoadFromYaml(configFile, cfg); err != nil {
 		logrus.Error("Config初始化失败, err:", err)
 		return
 	}
