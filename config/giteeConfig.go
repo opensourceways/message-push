@@ -24,6 +24,5 @@ func InitGiteeConfig(configFile string) {
 		logrus.Error("Config初始化失败, err:", err)
 		return
 	}
-	logrus.Info("读取gitee配置成功", cfg)
 	GiteeConfigInstance = *cfg
 }
