@@ -19,5 +19,6 @@ func InitEurBuildConfig() {
 		logrus.Error("Config初始化失败, err:", err)
 		return
 	}
+	logrus.Info("读取eur配置成功", cfg)
 	EurBuildConfigInstance = *cfg
 }
