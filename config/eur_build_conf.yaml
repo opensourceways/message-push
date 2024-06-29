@@ -5,13 +5,13 @@ push:
   message:
     app_info_key:
     app_info_secret:
-    api_address: https://smsapi.cn-south-1.myhuaweicloud.com:443/sms/batchSendSms/v1
+    api_address:
     sender:
     template_id:
     signature: 开源社区
   email:
-    smtp_host: smtp.163.com
+    smtp_host:
     smtp_password:
     smtp_port: 25
     smtp_sender: openeuler
-    smtp_username: shishupei2024@163.com
+    smtp_username:
