@@ -1,15 +1,13 @@
 package pushSdk
 
 import (
-	"bytes"
+	"crypto/tls"
 	"fmt"
 	"github.com/opensourceways/message-push/models/bo"
 	"github.com/opensourceways/message-push/models/dto"
-	"github.com/sirupsen/logrus"
-	"html/template"
+	"gopkg.in/mail.v2"
+	"log"
 	"net/smtp"
-	"os"
-	"path/filepath"
 	"strings"
 	"time"
 )
@@ -20,18 +18,6 @@ type EmailConfig struct {
 	SMTPPort     int    `json:"smtp_port"`
 	SMTPSender   string `json:"smtp_sender"`
 	SMTPUsername string `json:"smtp_username"`
-}
-
-type EmailParams struct {
-	Body      string
-	Code      string
-	Commenter string
-	Link      string
-	Number    string
-	Receiver  string
-	Repo      string
-	State     string
-	Title     string
 }
 
 func SendEmail(title string, summary string, recipient bo.RecipientConfig, config EmailConfig) dto.PushResult {
@@ -49,31 +35,6 @@ func SendEmail(title string, summary string, recipient bo.RecipientConfig, confi
 	}
 }
 
-func loadTemplate(path string, data interface{}) string {
-	content, err := os.ReadFile(path)
-	name := filepath.Base(path)
-	tmpl, err := template.New(name).Parse(string(content))
-	if err != nil {
-		logrus.Error(err)
-		return ""
-	}
-	renderString, err := renderTemplate(tmpl, data)
-	if err != nil {
-		logrus.Error(err)
-		return ""
-	}
-	return renderString
-}
-
-func renderTemplate(tmpl *template.Template, data interface{}) (string, error) {
-	buf := new(bytes.Buffer)
-	err := tmpl.Execute(buf, data)
-	if err != nil {
-		return "", fmt.Errorf("failed to execute template")
-	}
-	return buf.String(), nil
-}
-
 func sendEmail(receiver, subject, htmlBody string, config EmailConfig) error {
 	auth := smtp.PlainAuth("", config.SMTPUsername, config.SMTPPassword,
 		config.SMTPHost)
@@ -86,4 +47,27 @@ func sendEmail(receiver, subject, htmlBody string, config EmailConfig) error {
 		return err
 	}
 	return nil
+}
+
+func sendSSLEmail(receiver, subject, htmlBody string, config EmailConfig) error {
+	m := mail.NewMessage()
+
+	m.SetAddressHeader("From", config.SMTPUsername, config.SMTPSender)
+
+	// 设置接收者
+	m.SetHeader("To", receiver)
+	// 设置邮件主题
+	m.SetHeader("Subject", subject)
+	// 设置邮件内容
+	m.SetBody("text/plain", htmlBody)
+
+	d := mail.NewDialer(config.SMTPHost, config.SMTPPort, config.SMTPUsername, config.SMTPPassword)
+	d.TLSConfig = &tls.Config{InsecureSkipVerify: true} // 仅用于测试，生产环境下应设置为false
+
+	// 发送邮件
+	if err := d.DialAndSend(m); err != nil {
+		log.Fatal(err)
+	}
+
+	log.Println("Email sent successfully!")
 }
