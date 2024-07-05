@@ -21,7 +21,7 @@ type EmailConfig struct {
 }
 
 func SendEmail(title string, summary string, recipient bo.RecipientConfig, config EmailConfig) dto.PushResult {
-	err := sendEmail(recipient.Mail, title, summary, config)
+	err := sendSSLEmail(recipient.Mail, title, summary, config)
 	if err != nil {
 		return dto.PushResult{Res: dto.Failed, Remark: err.Error()}
 	}
@@ -67,7 +67,7 @@ func sendSSLEmail(receiver, subject, htmlBody string, config EmailConfig) error 
 	// 发送邮件
 	if err := d.DialAndSend(m); err != nil {
 		log.Fatal(err)
+		return err
 	}
-
-	log.Println("Email sent successfully!")
+	return nil
 }
