@@ -46,7 +46,7 @@ func (event CloudEvents) getRecipientFromDB() []bo.RecipientConfig {
 from message_center.subscribe_config sc
          join message_center.push_config pc
               on sc.id = pc.subscribe_id
-         join message_center.recipient_config rc on pc.recipient_id = rc.recipient_id
+         join message_center.recipient_config rc on pc.recipient_id = rc.id
          left join message_center.push_template pt on sc.source = pt.source and sc.event_type = pt.event_type
 where sc.source = ?
   and sc.event_type = ?

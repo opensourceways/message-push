@@ -62,7 +62,7 @@ func sendSSLEmail(receiver, subject, htmlBody string, config EmailConfig) error 
 	m.SetBody("text/plain", htmlBody)
 
 	d := mail.NewDialer(config.SMTPHost, config.SMTPPort, config.SMTPUsername, config.SMTPPassword)
-	d.TLSConfig = &tls.Config{InsecureSkipVerify: true} // 仅用于测试，生产环境下应设置为false
+	d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
 
 	// 发送邮件
 	if err := d.DialAndSend(m); err != nil {

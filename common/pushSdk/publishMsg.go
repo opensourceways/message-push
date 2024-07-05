@@ -59,7 +59,8 @@ func SendHWCloudMessage(msgConfig MsgConfig, templateParas []string, recipient b
 	body := buildRequestBody(sender, receiver, templateId, templateParasString, statusCallBack, signature)
 	_, err := post(apiAddress, []byte(body), appInfo)
 	if err != nil {
-		return dto.PushResult{Res: dto.Failed, Remark: err.Error()}
+		return dto.PushResult{Res: dto.Failed, Remark: err.Error(), RecipientId: recipient.RecipientId,
+			PushAddress: recipient.Phone}
 	}
 	return dto.PushResult{
 		Res:         dto.Succeed,
