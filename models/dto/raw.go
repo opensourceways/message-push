@@ -2,7 +2,6 @@ package dto
 
 import (
 	"bytes"
-	flattener "github.com/anshal21/json-flattener"
 	"github.com/go-playground/validator/v10"
 	"github.com/goccy/go-json"
 	"github.com/opensourceways/message-push/utils"
@@ -19,11 +18,28 @@ type Raw map[string]interface{}
 type FlatRawString map[string]string
 
 func (raw *Raw) Flatten() FlatRaw {
-	s, _ := json.Marshal(raw)
-	flatJSON, _ := flattener.FlattenJSON(string(s), flattener.DotSeparator)
 	flatMap := make(map[string]interface{})
-	_ = json.Unmarshal([]byte(flatJSON), &flatMap)
+	flattenMap(*raw, "", flatMap)
 	return flatMap
+}
+
+func flattenMap(m map[string]interface{}, prefix string, result map[string]interface{}) {
+	for key, value := range m {
+		// 构造新的键名
+		newKey := key
+		if prefix != "" {
+			newKey = prefix + "." + key
+		}
+
+		switch v := value.(type) {
+		case map[string]interface{}:
+			// 递归处理嵌套的 map
+			flattenMap(v, newKey, result)
+		default:
+			// 直接将值添加到结果 map 中
+			result[newKey] = v
+		}
+	}
 }
 
 func (raw *Raw) FromJson(jsonStr []byte) {

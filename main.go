@@ -38,10 +38,10 @@ func main() {
 		config.InitEurBuildConfig(o.EurBuildConfig)
 		service.SubscribeEurEvent()
 	}()
-	go func() {
-		config.InitGiteeConfig(o.GiteeConfig)
-		service.SubscribeGiteeEvent()
-	}()
+	//go func() {
+	//	config.InitGiteeConfig(o.GiteeConfig)
+	//	service.SubscribeGiteeEvent()
+	//}()
 	select {}
 }
 
