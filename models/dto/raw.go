@@ -26,6 +26,25 @@ func (raw *Raw) Flatten() FlatRaw {
 	return flatMap
 }
 
+func flattenMap(m map[string]interface{}, prefix string, result map[string]interface{}) {
+	for key, value := range m {
+		// 构造新的键名
+		newKey := key
+		if prefix != "" {
+			newKey = prefix + "." + key
+		}
+
+		switch v := value.(type) {
+		case map[string]interface{}:
+			// 递归处理嵌套的 map
+			flattenMap(v, newKey, result)
+		default:
+			// 直接将值添加到结果 map 中
+			result[newKey] = v
+		}
+	}
+}
+
 func (raw *Raw) FromJson(jsonStr []byte) {
 	// 创建一个Decoder对象，并调用UseNumber()
 	decoder := json.NewDecoder(bytes.NewReader(jsonStr))
