@@ -38,10 +38,14 @@ func main() {
 		config.InitEurBuildConfig(o.EurBuildConfig)
 		service.SubscribeEurEvent()
 	}()
-	//go func() {
-	//	config.InitGiteeConfig(o.GiteeConfig)
-	//	service.SubscribeGiteeEvent()
-	//}()
+	go func() {
+		config.InitGiteeConfig(o.GiteeConfig)
+		service.SubscribeGiteeEvent()
+	}()
+	go func() {
+		config.InitMeetingConfig(o.GiteeConfig)
+		service.SubscribeMeetingEvent()
+	}()
 	select {}
 }
 
@@ -76,10 +80,13 @@ type Options struct {
 	Config         string
 	EurBuildConfig string
 	GiteeConfig    string
+	MeetingConfig  string
 }
 
 func (o *Options) AddFlags(fs *flag.FlagSet) {
 	fs.StringVar(&o.Config, "config-file", "", "Path to config file.")
 	fs.StringVar(&o.EurBuildConfig, "eur-build-config-file", "", "Path to eur-build config file.")
 	fs.StringVar(&o.GiteeConfig, "gitee-config-file", "", "Path to gitee config file.")
+	fs.StringVar(&o.MeetingConfig, "meeting-config-file", "", "Path to meeting config file.")
+
 }

@@ -33,6 +33,16 @@ func EurBuildHandle(payload []byte, _ map[string]string) error {
 	return res
 }
 
+func OpenEulerMeetingHandle(payload []byte, _ map[string]string) error {
+	event := dto.NewCloudEvents()
+	msgBodyErr := json.Unmarshal(payload, &event)
+	if msgBodyErr != nil {
+		return msgBodyErr
+	}
+	res := handle(event, config.MeetingConfigInstance.Push)
+	return res
+}
+
 func handle(event dto.CloudEvents, push config.PushConfig) error {
 	raw := make(dto.Raw)
 	raw.FromJson(event.Data())
