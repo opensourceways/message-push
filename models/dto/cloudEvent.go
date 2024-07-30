@@ -58,20 +58,26 @@ where sc.source = ?
 	return subscribePushConfigs
 }
 
-func (event CloudEvents) SendInnerMessage(recipient bo.RecipientConfig) PushResult {
-	innerMessageDO := do.InnerMessageDO{
-		EventId:     event.ID(),
-		Source:      event.Source(),
-		RecipientId: recipient.RecipientId,
-		IsRead:      false,
+func (event CloudEvents) SendInnerMessageByRelatedUsers(relatedUsers []string) {
+	for _, user := range relatedUsers {
+		innerMessageDO := do.InnerMessageDO{
+			EventId:     event.ID(),
+			Source:      event.Source(),
+			RecipientId: user,
+			IsRead:      false,
+		}
+		SaveDb(innerMessageDO)
 	}
-	res := postgresql.DB().Save(&innerMessageDO)
+}
+
+func SaveDb(m do.InnerMessageDO) PushResult {
+	res := postgresql.DB().Save(&m)
 	if res.Error != nil {
 		return PushResult{
 			Res:         Failed,
 			Time:        time.Now(),
 			Remark:      res.Error.Error(),
-			RecipientId: recipient.RecipientId,
+			RecipientId: m.RecipientId,
 			PushType:    "inner message",
 			PushAddress: "",
 		}
@@ -80,9 +86,19 @@ func (event CloudEvents) SendInnerMessage(recipient bo.RecipientConfig) PushResu
 			Res:         Succeed,
 			Time:        time.Now(),
 			Remark:      "succeed",
-			RecipientId: recipient.RecipientId,
+			RecipientId: m.RecipientId,
 			PushType:    "inner message",
 			PushAddress: "",
 		}
 	}
+}
+
+func (event CloudEvents) SendInnerMessage(recipient bo.RecipientConfig) PushResult {
+	innerMessageDO := do.InnerMessageDO{
+		EventId:     event.ID(),
+		Source:      event.Source(),
+		RecipientId: recipient.RecipientId,
+		IsRead:      false,
+	}
+	return SaveDb(innerMessageDO)
 }

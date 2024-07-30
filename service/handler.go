@@ -10,6 +10,7 @@ import (
 	"github.com/opensourceways/message-push/models/dto"
 	"github.com/sirupsen/logrus"
 	"github.com/todocoder/go-stream/stream"
+	"strings"
 	"time"
 )
 
@@ -43,7 +44,17 @@ func OpenEulerMeetingHandle(payload []byte, _ map[string]string) error {
 	return res
 }
 
+func handleRelatedUsers(event dto.CloudEvents) {
+	raw := make(dto.Raw)
+	raw.FromJson(event.Data())
+	relatedUsers := strings.Split(event.Extensions()["relatedusers"].(string), ",")
+	event.SendInnerMessageByRelatedUsers(relatedUsers)
+}
 func handle(event dto.CloudEvents, push config.PushConfig) error {
+	handleRelatedUsers(event)
+	return handleSubcribe(event, push)
+}
+func handleSubcribe(event dto.CloudEvents, push config.PushConfig) error {
 	raw := make(dto.Raw)
 	raw.FromJson(event.Data())
 	flatRaw := raw.Flatten()
