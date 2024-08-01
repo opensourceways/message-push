@@ -4,7 +4,7 @@ import (
 	"gorm.io/datatypes"
 )
 
-type RecipientConfig struct {
+type RecipientPushConfig struct {
 	RecipientId      string         `gorm:"column:recipient_id"`
 	Mail             string         `gorm:"column:mail"`
 	Message          string         `gorm:"column:message"`

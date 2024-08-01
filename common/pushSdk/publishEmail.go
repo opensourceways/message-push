@@ -20,7 +20,7 @@ type EmailConfig struct {
 	SMTPUsername string `json:"smtp_username"`
 }
 
-func SendEmail(title string, summary string, recipient bo.RecipientConfig, config EmailConfig) dto.PushResult {
+func SendEmail(title string, summary string, recipient bo.RecipientPushConfig, config EmailConfig) dto.PushResult {
 	err := sendSSLEmail(recipient.Mail, title, summary, config)
 	if err != nil {
 		return dto.PushResult{Res: dto.Failed, Remark: err.Error()}

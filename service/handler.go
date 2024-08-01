@@ -10,7 +10,6 @@ import (
 	"github.com/opensourceways/message-push/models/dto"
 	"github.com/sirupsen/logrus"
 	"github.com/todocoder/go-stream/stream"
-	"strings"
 	"time"
 )
 
@@ -44,17 +43,7 @@ func OpenEulerMeetingHandle(payload []byte, _ map[string]string) error {
 	return res
 }
 
-func handleRelatedUsers(event dto.CloudEvents) {
-	raw := make(dto.Raw)
-	raw.FromJson(event.Data())
-	relatedUsers := strings.Split(event.Extensions()["relatedusers"].(string), ",")
-	event.SendInnerMessageByRelatedUsers(relatedUsers)
-}
 func handle(event dto.CloudEvents, push config.PushConfig) error {
-	handleRelatedUsers(event)
-	return handleSubcribe(event, push)
-}
-func handleSubcribe(event dto.CloudEvents, push config.PushConfig) error {
 	raw := make(dto.Raw)
 	raw.FromJson(event.Data())
 	flatRaw := raw.Flatten()
@@ -63,13 +52,13 @@ func handleSubcribe(event dto.CloudEvents, push config.PushConfig) error {
 		return nil
 	}
 	stream.Of(recipients...).Filter(
-		func(recipient bo.RecipientConfig) bool {
+		func(recipient bo.RecipientPushConfig) bool {
 			if recipient.ModeFilter == nil {
 				return true
 			}
 			return flatRaw.ModeFilter(recipient.ModeFilter)
 		},
-	).ForEach(func(recipient bo.RecipientConfig) {
+	).ForEach(func(recipient bo.RecipientPushConfig) {
 		if recipient.NeedMessage {
 			res := sendHWCloudMessage(raw, recipient, push.MsgConfig)
 			insertData(event, flatRaw, res)
@@ -89,16 +78,16 @@ func handleSubcribe(event dto.CloudEvents, push config.PushConfig) error {
 	return nil
 }
 
-func sendHWCloudMessage(raw dto.Raw, recipient bo.RecipientConfig, messageConfig pushSdk.MsgConfig) dto.PushResult {
+func sendHWCloudMessage(raw dto.Raw, recipient bo.RecipientPushConfig, messageConfig pushSdk.MsgConfig) dto.PushResult {
 	templateParas := raw.ToMessageArgs(recipient.MessageTemplate)
 	return pushSdk.SendHWCloudMessage(messageConfig, templateParas, recipient)
 }
 
-func sendInnerMessage(event dto.CloudEvents, recipient bo.RecipientConfig) dto.PushResult {
+func sendInnerMessage(event dto.CloudEvents, recipient bo.RecipientPushConfig) dto.PushResult {
 	return event.SendInnerMessage(recipient)
 }
 
-func sendMail(event dto.CloudEvents, recipient bo.RecipientConfig, emailConfig pushSdk.EmailConfig) dto.PushResult {
+func sendMail(event dto.CloudEvents, recipient bo.RecipientPushConfig, emailConfig pushSdk.EmailConfig) dto.PushResult {
 	return pushSdk.SendEmail(event.Extensions()["title"].(string),
 		event.Extensions()["summary"].(string), recipient, emailConfig)
 }
