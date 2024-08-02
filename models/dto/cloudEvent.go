@@ -15,15 +15,15 @@ const recipient_sql = `
                 mail,
                 message,
                 phone,
-                '{}'::jsonb as mode_filter,
+                null::jsonb as mode_filter,
                 false as need_message,
                 false as need_phone,
                 false as need_mail,
                 true  as need_inner_message,
                 null  as message_template,
                 null  as mail_template
-from recipient_config
-where recipient_config.is_deleted is false
+from message_center.recipient_config
+where is_deleted is false
   and (recipient_name in ?
     or mail in ?
     or phone in ?
