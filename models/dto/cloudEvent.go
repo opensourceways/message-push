@@ -6,8 +6,54 @@ import (
 	"github.com/opensourceways/message-push/common/postgresql"
 	"github.com/opensourceways/message-push/models/bo"
 	"github.com/opensourceways/message-push/models/do"
+	"strings"
 	"time"
 )
+
+const recipient_sql = `
+	select distinct id       recipient_id,
+                mail,
+                message,
+                phone,
+                null::jsonb as mode_filter,
+                false as need_message,
+                false as need_phone,
+                false as need_mail,
+                true  as need_inner_message,
+                null  as message_template,
+                null  as mail_template
+from message_center.recipient_config
+where is_deleted is false
+  and (recipient_name in ?
+    or mail in ?
+    or phone in ?
+    )
+union
+
+select distinct rc.id recipient_id,
+
+                rc.mail,
+                rc.message,
+                rc.phone,
+                sc.mode_filter,
+
+                pc.need_message,
+                pc.need_phone,
+                pc.need_mail,
+                pc.need_inner_message,
+                pt.message_template,
+                pt.mail_template
+from message_center.subscribe_config sc
+         join message_center.push_config pc
+              on sc.id = pc.subscribe_id
+         join message_center.recipient_config rc on pc.recipient_id = rc.id
+         left join message_center.push_template pt on sc.source = pt.source and sc.event_type = pt.event_type
+where sc.source = ?
+  and sc.event_type = ?
+  and sc.is_deleted = false
+  and pc.is_deleted = false
+  and rc.is_deleted = false
+`
 
 type CloudEvents struct {
 	cloudevents.Event
@@ -23,55 +69,41 @@ func (event CloudEvents) Message() ([]byte, error) {
 	return json.Marshal(event)
 }
 
-func (event CloudEvents) GetRecipient() []bo.RecipientConfig {
+func (event CloudEvents) GetRecipient() []bo.RecipientPushConfig {
 	subscribePushConfigs := event.getRecipientFromDB()
 	return subscribePushConfigs
 }
 
-func (event CloudEvents) getRecipientFromDB() []bo.RecipientConfig {
-	var subscribePushConfigs []bo.RecipientConfig
+func (event CloudEvents) getRecipientFromDB() []bo.RecipientPushConfig {
+	relatedUsers := strings.Split(event.Extensions()["relatedusers"].(string), ",")
+	var subscribePushConfigs []bo.RecipientPushConfig
 	postgresql.DB().Raw(
-		`select  distinct sc.mode_filter,
-       rc.id recipient_id,
-       rc.mail,
-       rc.message,
-       rc.phone,
-       pc.id,
-       pc.need_message,
-       pc.need_phone,
-       pc.need_mail,
-       pc.need_inner_message,
-       pt.message_template,
-       pt.mail_template
-from message_center.subscribe_config sc
-         join message_center.push_config pc
-              on sc.id = pc.subscribe_id
-         join message_center.recipient_config rc on pc.recipient_id = rc.id
-         left join message_center.push_template pt on sc.source = pt.source and sc.event_type = pt.event_type
-where sc.source = ?
-  and sc.event_type = ?
-  and sc.is_deleted = false
-  and pc.is_deleted = false
-  and rc.is_deleted = false`,
-		event.Source(), event.Type(),
+		recipient_sql,
+		relatedUsers, relatedUsers, relatedUsers, event.Source(), event.Type(),
 	).Scan(&subscribePushConfigs)
 	return subscribePushConfigs
 }
 
-func (event CloudEvents) SendInnerMessage(recipient bo.RecipientConfig) PushResult {
-	innerMessageDO := do.InnerMessageDO{
-		EventId:     event.ID(),
-		Source:      event.Source(),
-		RecipientId: recipient.RecipientId,
-		IsRead:      false,
+func (event CloudEvents) SendInnerMessageByRelatedUsers(relatedUsers []string) {
+	for _, user := range relatedUsers {
+		innerMessageDO := do.InnerMessageDO{
+			EventId:     event.ID(),
+			Source:      event.Source(),
+			RecipientId: user,
+			IsRead:      false,
+		}
+		SaveDb(innerMessageDO)
 	}
-	res := postgresql.DB().Save(&innerMessageDO)
+}
+
+func SaveDb(m do.InnerMessageDO) PushResult {
+	res := postgresql.DB().Save(&m)
 	if res.Error != nil {
 		return PushResult{
 			Res:         Failed,
 			Time:        time.Now(),
 			Remark:      res.Error.Error(),
-			RecipientId: recipient.RecipientId,
+			RecipientId: m.RecipientId,
 			PushType:    "inner message",
 			PushAddress: "",
 		}
@@ -80,9 +112,19 @@ func (event CloudEvents) SendInnerMessage(recipient bo.RecipientConfig) PushResu
 			Res:         Succeed,
 			Time:        time.Now(),
 			Remark:      "succeed",
-			RecipientId: recipient.RecipientId,
+			RecipientId: m.RecipientId,
 			PushType:    "inner message",
 			PushAddress: "",
 		}
 	}
+}
+
+func (event CloudEvents) SendInnerMessage(recipient bo.RecipientPushConfig) PushResult {
+	innerMessageDO := do.InnerMessageDO{
+		EventId:     event.ID(),
+		Source:      event.Source(),
+		RecipientId: recipient.RecipientId,
+		IsRead:      false,
+	}
+	return SaveDb(innerMessageDO)
 }

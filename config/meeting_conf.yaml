@@ -1,0 +1,17 @@
+kafka:
+  topic: openEuler_meeting_event
+  group: message-push
+push:
+  message:
+    app_info_key:
+    app_info_secret:
+    api_address:
+    sender:
+    template_id:
+    signature: 开源社区
+  email:
+    smtp_host: smtp.exmail.qq.com
+    smtp_password:
+    smtp_port: 465
+    smtp_sender: openeuler
+    smtp_username:
