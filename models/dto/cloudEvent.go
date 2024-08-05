@@ -27,7 +27,7 @@ where is_deleted is false
   and (recipient_name in ?
     or mail in ?
     or phone in ?
-      or gitee_login_user in ?
+      or gitee_user_name in ?
       or user_id in ?
     )
 union
