@@ -28,6 +28,7 @@ where is_deleted is false
     or mail in ?
     or phone in ?
       or gitee_login_user in ?
+      or user_id in ?
     )
 union
 
@@ -80,7 +81,7 @@ func (event CloudEvents) getRecipientFromDB() []bo.RecipientPushConfig {
 	var subscribePushConfigs []bo.RecipientPushConfig
 	postgresql.DB().Raw(
 		recipient_sql,
-		relatedUsers, relatedUsers, relatedUsers, relatedUsers, event.Source(), event.Type(),
+		relatedUsers, relatedUsers, relatedUsers, relatedUsers, relatedUsers, event.Source(), event.Type(),
 	).Scan(&subscribePushConfigs)
 	return subscribePushConfigs
 }
