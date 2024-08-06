@@ -59,28 +59,46 @@ func handle(event dto.CloudEvents, push config.PushConfig) error {
 			return flatRaw.ModeFilter(recipient.ModeFilter)
 		},
 	).ForEach(func(recipient bo.RecipientPushConfig) {
-		if recipient.NeedMessage {
-			res := sendHWCloudMessage(raw, recipient, push.MsgConfig)
+		if recipient.NeedInnerMessage {
+			res := sendInnerMessage(event, recipient)
+			if res.Res == dto.Failed {
+				logrus.Info("send inner message ", event.ID()+" failed", recipient.Message)
+			} else {
+				logrus.Info("send inner message ", event.ID()+" success", recipient.Message)
+			}
 			insertData(event, flatRaw, res)
-			logrus.Info("send message ", event.ID()+" success", recipient.Message)
 		}
 		if recipient.NeedMail {
 			res := sendMail(event, recipient, push.EmailConfig)
+			if res.Res == dto.Failed {
+				logrus.Info("send mail ", event.ID()+" failed", recipient.Message)
+			} else {
+				logrus.Info("send mail ", event.ID()+" success", recipient.Message)
+			}
 			insertData(event, flatRaw, res)
 			logrus.Info("send mail ", event.ID()+" success，接收人", recipient.Mail)
 		}
-		if recipient.NeedInnerMessage {
-			res := sendInnerMessage(event, recipient)
-			logrus.Info("send inner message ", event.ID()+" success")
+		if recipient.NeedMessage {
+			res := sendHWCloudMessage(raw, recipient, push.MsgConfig)
+			if res.Res == dto.Failed {
+				logrus.Info("send message ", event.ID()+" failed", recipient.Message)
+			} else {
+				logrus.Info("send message ", event.ID()+" success", recipient.Message)
+			}
 			insertData(event, flatRaw, res)
 		}
+
 	})
 	return nil
 }
 
 func sendHWCloudMessage(raw dto.Raw, recipient bo.RecipientPushConfig, messageConfig pushSdk.MsgConfig) dto.PushResult {
 	templateParas := raw.ToMessageArgs(recipient.MessageTemplate)
-	return pushSdk.SendHWCloudMessage(messageConfig, templateParas, recipient)
+	res := pushSdk.SendHWCloudMessage(messageConfig, templateParas, recipient)
+	if res.Res == dto.Failed {
+		logrus.Error("send hwcloud message failed", templateParas)
+	}
+	return res
 }
 
 func sendInnerMessage(event dto.CloudEvents, recipient bo.RecipientPushConfig) dto.PushResult {
