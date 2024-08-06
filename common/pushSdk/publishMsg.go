@@ -118,7 +118,7 @@ func post(url string, param []byte, appInfo core.Signer) (string, error) {
 		return "", err
 	}
 	if resp.StatusCode != 200 {
-		logrus.Error("发送短信失败", resp.StatusCode)
+		logrus.Error("发送短信失败", param, resp.StatusCode)
 		return "", errors.New(resp.Status)
 	}
 	fmt.Println(resp)
