@@ -46,50 +46,58 @@ func OpenEulerMeetingHandle(payload []byte, _ map[string]string) error {
 func handle(event dto.CloudEvents, push config.PushConfig) error {
 	raw := make(dto.Raw)
 	raw.FromJson(event.Data())
-	flatRaw := raw.Flatten()
 	recipients := event.GetRecipient()
 	if recipients == nil || len(recipients) == 0 {
 		return nil
 	}
-	stream.Of(recipients...).Filter(
-		func(recipient bo.RecipientPushConfig) bool {
-			if recipient.ModeFilter == nil {
-				return true
+	flatRaw := raw.Flatten()
+	stream.Of(recipients...).ForEach(
+		func(item bo.RecipientPushConfig) {
+			isFilter := flatRaw.ModeFilter(item.ModeFilter)
+			handleInnerMessage(isFilter, event, flatRaw, item)
+			if isFilter {
+				handleMessage(event, raw, flatRaw, item, push)
+				handleMail(event, flatRaw, item, push)
 			}
-			return flatRaw.ModeFilter(recipient.ModeFilter)
 		},
-	).ForEach(func(recipient bo.RecipientPushConfig) {
-		if recipient.NeedInnerMessage {
-			res := sendInnerMessage(event, recipient)
-			if res.Res == dto.Failed {
-				logrus.Info("send inner message ", event.ID()+" failed", recipient.Message)
-			} else {
-				logrus.Info("send inner message ", event.ID()+" success", recipient.Message)
-			}
-			insertData(event, flatRaw, res)
-		}
-		if recipient.NeedMail {
-			res := sendMail(event, recipient, push.EmailConfig)
-			if res.Res == dto.Failed {
-				logrus.Info("send mail ", event.ID()+" failed", recipient.Message)
-			} else {
-				logrus.Info("send mail ", event.ID()+" success", recipient.Message)
-			}
-			insertData(event, flatRaw, res)
-			logrus.Info("send mail ", event.ID()+" success，接收人", recipient.Mail)
-		}
-		if recipient.NeedMessage {
-			res := sendHWCloudMessage(raw, recipient, push.MsgConfig)
-			if res.Res == dto.Failed {
-				logrus.Info("send message ", event.ID()+" failed", recipient.Message)
-			} else {
-				logrus.Info("send message ", event.ID()+" success", recipient.Message)
-			}
-			insertData(event, flatRaw, res)
-		}
-
-	})
+	)
 	return nil
+}
+
+func handleInnerMessage(isFilter bool, event dto.CloudEvents, flatRaw dto.FlatRaw, pushConfig bo.RecipientPushConfig) {
+	pushConfig.IsSpecial = isFilter && pushConfig.NeedInnerMessage
+	res := sendInnerMessage(event, pushConfig)
+	if res.Res == dto.Failed {
+		logrus.Info("send inner message ", event.ID()+" failed")
+	} else {
+		logrus.Info("send inner message ", event.ID()+" success")
+	}
+	insertData(event, flatRaw, res)
+}
+
+func handleMessage(event dto.CloudEvents, raw dto.Raw, flatRaw dto.FlatRaw, pushConfig bo.RecipientPushConfig, push config.PushConfig) {
+	if pushConfig.NeedMessage {
+		res := sendHWCloudMessage(raw, pushConfig, push.MsgConfig)
+		if res.Res == dto.Failed {
+			logrus.Info("send message ", event.ID()+" failed", pushConfig.Message)
+		} else {
+			logrus.Info("send message ", event.ID()+" success", pushConfig.Message)
+		}
+		insertData(event, flatRaw, res)
+	}
+}
+
+func handleMail(event dto.CloudEvents, flatRaw dto.FlatRaw, pushConfig bo.RecipientPushConfig, push config.PushConfig) {
+	if pushConfig.NeedMail {
+		res := sendMail(event, pushConfig, push.EmailConfig)
+		if res.Res == dto.Failed {
+			logrus.Info("send mail ", event.ID()+" failed", pushConfig.Mail)
+		} else {
+			logrus.Info("send mail ", event.ID()+" success", pushConfig.Mail)
+		}
+		insertData(event, flatRaw, res)
+		logrus.Info("send mail ", event.ID()+" success，接收人", pushConfig.Mail)
+	}
 }
 
 func sendHWCloudMessage(raw dto.Raw, recipient bo.RecipientPushConfig, messageConfig pushSdk.MsgConfig) dto.PushResult {

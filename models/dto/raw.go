@@ -59,6 +59,9 @@ func (raw *Raw) FromJson(jsonStr []byte) {
 }
 
 func (flatRaw FlatRaw) ModeFilter(modeFilterJson datatypes.JSON) bool {
+	if modeFilterJson == nil {
+		return true
+	}
 	modeFilterMap := make(map[string]string)
 	_ = json.Unmarshal(modeFilterJson, &modeFilterMap)
 	validate := validator.New()

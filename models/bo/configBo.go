@@ -16,4 +16,5 @@ type RecipientPushConfig struct {
 	NeedInnerMessage bool           `gorm:"column:need_inner_message"`
 	MessageTemplate  string         `gorm:"column:message_template"`
 	MailTemplate     string         `gorm:"column:mail_template"`
+	IsSpecial        bool           `gorm:"column:is_special"`
 }

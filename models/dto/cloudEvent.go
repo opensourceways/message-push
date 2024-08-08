@@ -6,11 +6,12 @@ import (
 	"github.com/opensourceways/message-push/common/postgresql"
 	"github.com/opensourceways/message-push/models/bo"
 	"github.com/opensourceways/message-push/models/do"
+	"github.com/todocoder/go-stream/stream"
 	"strings"
 	"time"
 )
 
-const recipient_sql = `
+const related_sql = `
 	select distinct id       recipient_id,
                 mail,
                 message,
@@ -19,7 +20,7 @@ const recipient_sql = `
                 false as need_message,
                 false as need_phone,
                 false as need_mail,
-                true  as need_inner_message,
+                false  as need_inner_message,
                 null  as message_template,
                 null  as mail_template
 from message_center.recipient_config
@@ -30,8 +31,8 @@ where is_deleted is false
       or gitee_user_name in ?
       or user_id in ?
     )
-union
-
+`
+const subscribe_sql = `
 select distinct rc.id recipient_id,
 
                 rc.mail,
@@ -49,6 +50,12 @@ from message_center.subscribe_config sc
          join message_center.push_config pc
               on sc.id = pc.subscribe_id
          join message_center.recipient_config rc on pc.recipient_id = rc.id
+    	and (recipient_name in ?
+                      or mail in ?
+                      or phone in ?
+                      or gitee_user_name in ?
+                      or user_id in ?
+                     )
          left join message_center.push_template pt on sc.source = pt.source and sc.event_type = pt.event_type
 where sc.source = ?
   and sc.event_type = ?
@@ -72,30 +79,35 @@ func (event CloudEvents) Message() ([]byte, error) {
 }
 
 func (event CloudEvents) GetRecipient() []bo.RecipientPushConfig {
-	subscribePushConfigs := event.getRecipientFromDB()
-	return subscribePushConfigs
+	subscribePushConfigs := event.getSubscribeFromDB()
+	relatedPushConfigs := event.getRelatedFromDB()
+	return mergeRecipient(subscribePushConfigs, relatedPushConfigs)
 }
 
-func (event CloudEvents) getRecipientFromDB() []bo.RecipientPushConfig {
+func mergeRecipient(subscribe []bo.RecipientPushConfig, related []bo.RecipientPushConfig) []bo.RecipientPushConfig {
+	return stream.Of(subscribe...).Concat(stream.Of(related...)).Distinct(func(item bo.RecipientPushConfig) any {
+		return item.RecipientId
+	}).ToSlice()
+}
+
+func (event CloudEvents) getRelatedFromDB() []bo.RecipientPushConfig {
 	relatedUsers := strings.Split(event.Extensions()["relatedusers"].(string), ",")
 	var subscribePushConfigs []bo.RecipientPushConfig
 	postgresql.DB().Raw(
-		recipient_sql,
-		relatedUsers, relatedUsers, relatedUsers, relatedUsers, relatedUsers, event.Source(), event.Type(),
+		related_sql,
+		relatedUsers, relatedUsers, relatedUsers, relatedUsers, relatedUsers,
 	).Scan(&subscribePushConfigs)
 	return subscribePushConfigs
 }
 
-func (event CloudEvents) SendInnerMessageByRelatedUsers(relatedUsers []string) {
-	for _, user := range relatedUsers {
-		innerMessageDO := do.InnerMessageDO{
-			EventId:     event.ID(),
-			Source:      event.Source(),
-			RecipientId: user,
-			IsRead:      false,
-		}
-		SaveDb(innerMessageDO)
-	}
+func (event CloudEvents) getSubscribeFromDB() []bo.RecipientPushConfig {
+	relatedUsers := strings.Split(event.Extensions()["relatedusers"].(string), ",")
+	var subscribePushConfigs []bo.RecipientPushConfig
+	postgresql.DB().Raw(
+		subscribe_sql,
+		relatedUsers, relatedUsers, relatedUsers, relatedUsers, relatedUsers, event.Source(), event.Type(),
+	).Scan(&subscribePushConfigs)
+	return subscribePushConfigs
 }
 
 func SaveDb(m do.InnerMessageDO) PushResult {
@@ -127,6 +139,7 @@ func (event CloudEvents) SendInnerMessage(recipient bo.RecipientPushConfig) Push
 		Source:      event.Source(),
 		RecipientId: recipient.RecipientId,
 		IsRead:      false,
+		IsSpecial:   recipient.IsSpecial,
 	}
 	return SaveDb(innerMessageDO)
 }
