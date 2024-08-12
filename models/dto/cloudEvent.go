@@ -84,7 +84,8 @@ func (event CloudEvents) GetRecipient() []bo.RecipientPushConfig {
 	subscribePushConfigs := event.getSubscribeFromDB()
 	relatedPushConfigs := event.getRelatedFromDB()
 
-	logrus.Infof("the subscribe data is %v", subscribePushConfigs)
+	logrus.Infof("the subscribe data is %v, the related data is %v",
+		subscribePushConfigs, relatedPushConfigs)
 	return mergeRecipient(subscribePushConfigs, relatedPushConfigs)
 }
 
