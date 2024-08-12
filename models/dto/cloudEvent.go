@@ -2,13 +2,15 @@ package dto
 
 import (
 	"encoding/json"
+	"strings"
+	"time"
+
 	cloudevents "github.com/cloudevents/sdk-go/v2"
 	"github.com/opensourceways/message-push/common/postgresql"
 	"github.com/opensourceways/message-push/models/bo"
 	"github.com/opensourceways/message-push/models/do"
+	"github.com/sirupsen/logrus"
 	"github.com/todocoder/go-stream/stream"
-	"strings"
-	"time"
 )
 
 const related_sql = `
@@ -81,6 +83,8 @@ func (event CloudEvents) Message() ([]byte, error) {
 func (event CloudEvents) GetRecipient() []bo.RecipientPushConfig {
 	subscribePushConfigs := event.getSubscribeFromDB()
 	relatedPushConfigs := event.getRelatedFromDB()
+
+	logrus.Infof("the subscribe data is %v", subscribePushConfigs)
 	return mergeRecipient(subscribePushConfigs, relatedPushConfigs)
 }
 
