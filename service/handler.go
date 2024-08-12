@@ -15,6 +15,7 @@ import (
 )
 
 func GiteeHandle(payload []byte, _ map[string]string) error {
+	logrus.Infof("receive gitee event")
 	event := dto.NewCloudEvents()
 	msgBodyErr := json.Unmarshal(payload, &event)
 	if msgBodyErr != nil {
