@@ -1,6 +1,8 @@
 package service
 
 import (
+	"time"
+
 	"github.com/goccy/go-json"
 	"github.com/gocql/gocql"
 	"github.com/opensourceways/message-push/common/cassandra"
@@ -10,7 +12,6 @@ import (
 	"github.com/opensourceways/message-push/models/dto"
 	"github.com/sirupsen/logrus"
 	"github.com/todocoder/go-stream/stream"
-	"time"
 )
 
 func GiteeHandle(payload []byte, _ map[string]string) error {
@@ -152,6 +153,7 @@ values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);
 		).
 		Exec()
 	if err != nil {
+		logrus.Errorf("insert data failed, err:%v", err)
 		panic(nil)
 		return
 	}
