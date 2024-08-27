@@ -44,6 +44,16 @@ func OpenEulerMeetingHandle(payload []byte, _ map[string]string) error {
 	return res
 }
 
+func CVEHandle(payload []byte, _ map[string]string) error {
+	event := dto.NewCloudEvents()
+	msgBodyErr := json.Unmarshal(payload, &event)
+	if msgBodyErr != nil {
+		return msgBodyErr
+	}
+	res := handle(event, config.CVEConfigInstance.Push)
+	return res
+}
+
 func handle(event dto.CloudEvents, push config.PushConfig) error {
 	raw := make(dto.Raw)
 	raw.FromJson(event.Data())
@@ -54,8 +64,8 @@ func handle(event dto.CloudEvents, push config.PushConfig) error {
 	flatRaw := raw.Flatten()
 	stream.Of(recipients...).ForEach(
 		func(item bo.RecipientPushConfig) {
+			handleInnerMessage(event, flatRaw, item)
 			isFilter := flatRaw.ModeFilter(item.ModeFilter)
-			handleInnerMessage(isFilter, event, flatRaw, item)
 			if isFilter {
 				handleMessage(event, raw, flatRaw, item, push)
 				handleMail(event, flatRaw, item, push)
@@ -65,8 +75,7 @@ func handle(event dto.CloudEvents, push config.PushConfig) error {
 	return nil
 }
 
-func handleInnerMessage(isFilter bool, event dto.CloudEvents, flatRaw dto.FlatRaw, pushConfig bo.RecipientPushConfig) {
-	pushConfig.IsSpecial = isFilter && pushConfig.NeedInnerMessage
+func handleInnerMessage(event dto.CloudEvents, flatRaw dto.FlatRaw, pushConfig bo.RecipientPushConfig) {
 	res := sendInnerMessage(event, pushConfig)
 	if res.Res == dto.Failed {
 		logrus.Info("send inner message ", event.ID()+" failed")

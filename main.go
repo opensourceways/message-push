@@ -46,6 +46,10 @@ func main() {
 		config.InitMeetingConfig(o.MeetingConfig)
 		service.SubscribeMeetingEvent()
 	}()
+	go func() {
+		config.InitCVEConfig(o.CVEConfig)
+		service.SubscribeCVEEvent()
+	}()
 	select {}
 }
 
@@ -81,6 +85,7 @@ type Options struct {
 	EurBuildConfig string
 	GiteeConfig    string
 	MeetingConfig  string
+	CVEConfig      string
 }
 
 func (o *Options) AddFlags(fs *flag.FlagSet) {
@@ -88,5 +93,6 @@ func (o *Options) AddFlags(fs *flag.FlagSet) {
 	fs.StringVar(&o.EurBuildConfig, "eur-build-config-file", "", "Path to eur-build config file.")
 	fs.StringVar(&o.GiteeConfig, "gitee-config-file", "", "Path to gitee config file.")
 	fs.StringVar(&o.MeetingConfig, "meeting-config-file", "", "Path to meeting config file.")
+	fs.StringVar(&o.CVEConfig, "cve-config-file", "", "Path to cve config file.")
 
 }

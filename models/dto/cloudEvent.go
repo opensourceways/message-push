@@ -144,7 +144,7 @@ func (event CloudEvents) SendInnerMessage(recipient bo.RecipientPushConfig) Push
 		Source:      event.Source(),
 		RecipientId: recipient.RecipientId,
 		IsRead:      false,
-		IsSpecial:   recipient.IsSpecial,
+		IsSpecial:   false,
 	}
 	return SaveDb(innerMessageDO)
 }

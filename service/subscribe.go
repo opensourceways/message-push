@@ -20,3 +20,8 @@ func SubscribeMeetingEvent() {
 	logrus.Info("subscribing to meeting topic")
 	_ = kfklib.Subscribe(config.MeetingConfigInstance.Kafka.Group, OpenEulerMeetingHandle, []string{config.MeetingConfigInstance.Kafka.Topic})
 }
+
+func SubscribeCVEEvent() {
+	logrus.Info("subscribing to cve topic")
+	_ = kfklib.Subscribe(config.CVEConfigInstance.Kafka.Group, CVEHandle, []string{config.CVEConfigInstance.Kafka.Topic})
+}
