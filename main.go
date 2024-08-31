@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/opensourceways/message-push/common/cassandra"
 	"github.com/opensourceways/message-push/common/kafka"
 	"github.com/opensourceways/message-push/common/postgresql"
 	"github.com/opensourceways/message-push/config"
@@ -30,22 +29,22 @@ func main() {
 		return
 	}
 
-	if err := cassandra.Init(&cfg.Cassandra); err != nil {
-		logrus.Errorf("init postgresql failed, err:%s", err.Error())
-		return
-	}
-	go func() {
-		config.InitEurBuildConfig(o.EurBuildConfig)
-		service.SubscribeEurEvent()
-	}()
-	go func() {
-		config.InitGiteeConfig(o.GiteeConfig)
-		service.SubscribeGiteeEvent()
-	}()
-	go func() {
-		config.InitMeetingConfig(o.MeetingConfig)
-		service.SubscribeMeetingEvent()
-	}()
+	//if err := cassandra.Init(&cfg.Cassandra); err != nil {
+	//	logrus.Errorf("init postgresql failed, err:%s", err.Error())
+	//	return
+	//}
+	//go func() {
+	//	config.InitEurBuildConfig(o.EurBuildConfig)
+	//	service.SubscribeEurEvent()
+	//}()
+	//go func() {
+	//	config.InitGiteeConfig(o.GiteeConfig)
+	//	service.SubscribeGiteeEvent()
+	//}()
+	//go func() {
+	//	config.InitMeetingConfig(o.MeetingConfig)
+	//	service.SubscribeMeetingEvent()
+	//}()
 	go func() {
 		config.InitCVEConfig(o.CVEConfig)
 		service.SubscribeCVEEvent()

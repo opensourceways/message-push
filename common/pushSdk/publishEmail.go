@@ -59,7 +59,7 @@ func sendSSLEmail(receiver, subject, htmlBody string, config EmailConfig) error 
 	// 设置邮件主题
 	m.SetHeader("Subject", subject)
 	// 设置邮件内容
-	m.SetBody("text/plain", htmlBody)
+	m.SetBody("text/html", htmlBody)
 
 	d := mail.NewDialer(config.SMTPHost, config.SMTPPort, config.SMTPUsername, config.SMTPPassword)
 	d.TLSConfig = &tls.Config{InsecureSkipVerify: true}

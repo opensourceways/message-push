@@ -82,7 +82,7 @@ func handleInnerMessage(event dto.CloudEvents, flatRaw dto.FlatRaw, pushConfig b
 	} else {
 		logrus.Info("send inner message ", event.ID()+" success")
 	}
-	insertData(event, flatRaw, res)
+	//insertData(event, flatRaw, res)
 }
 
 func handleMessage(event dto.CloudEvents, raw dto.Raw, flatRaw dto.FlatRaw, pushConfig bo.RecipientPushConfig, push config.PushConfig) {
@@ -93,7 +93,7 @@ func handleMessage(event dto.CloudEvents, raw dto.Raw, flatRaw dto.FlatRaw, push
 		} else {
 			logrus.Info("send message ", event.ID()+" success", pushConfig.Message)
 		}
-		insertData(event, flatRaw, res)
+		//insertData(event, flatRaw, res)
 	}
 }
 
@@ -105,7 +105,7 @@ func handleMail(event dto.CloudEvents, flatRaw dto.FlatRaw, pushConfig bo.Recipi
 		} else {
 			logrus.Info("send mail ", event.ID()+" success", pushConfig.Mail)
 		}
-		insertData(event, flatRaw, res)
+		//insertData(event, flatRaw, res)
 		logrus.Info("send mail ", event.ID()+" success，接收人", pushConfig.Mail)
 	}
 }
