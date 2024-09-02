@@ -2,13 +2,10 @@ package pushSdk
 
 import (
 	"crypto/tls"
-	"fmt"
 	"github.com/opensourceways/message-push/models/bo"
 	"github.com/opensourceways/message-push/models/dto"
 	"gopkg.in/mail.v2"
 	"log"
-	"net/smtp"
-	"strings"
 	"time"
 )
 
@@ -33,20 +30,6 @@ func SendEmail(title string, summary string, recipient bo.RecipientPushConfig, c
 		PushAddress: recipient.Mail,
 		PushType:    "mail",
 	}
-}
-
-func sendEmail(receiver, subject, htmlBody string, config EmailConfig) error {
-	auth := smtp.PlainAuth("", config.SMTPUsername, config.SMTPPassword,
-		config.SMTPHost)
-	contentType := "Content-Type: text/html; charset=UTF-8"
-	msg := []byte("To: " + receiver + "\r\nFrom: " + config.SMTPSender + ">\r\nSubject: " + subject + "\r\n" +
-		contentType + "\r\n\r\n" + htmlBody)
-	err := smtp.SendMail(fmt.Sprintf("%v:%v", config.SMTPHost, config.SMTPPort), auth,
-		config.SMTPUsername, strings.Split(receiver, ";"), msg)
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 func sendSSLEmail(receiver, subject, htmlBody string, config EmailConfig) error {
