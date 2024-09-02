@@ -1,6 +1,6 @@
 kafka:
   topic: cve_issue_event
-  group: message-push
+  group: message-push-local
 push:
   message:
     app_info_key:
@@ -8,10 +8,10 @@ push:
     api_address:
     sender:
     template_id:
-    signature: 开源社区
+    signature:
   email:
-    smtp_host: smtp.exmail.qq.com
-    smtp_password: bdAg83DZ76cdrq8L
-    smtp_port: 465
-    smtp_sender: openeuler
-    smtp_username: notify@public.openeuler.org
+    smtp_host:
+    smtp_password:
+    smtp_port:
+    smtp_sender:
+    smtp_username:
