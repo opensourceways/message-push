@@ -54,8 +54,9 @@ func (raw *Raw) FromJson(jsonStr []byte) {
 		logrus.Error(err)
 		return
 	}
-	result = convertNumbers(result).(map[string]interface{})
-	*raw = result
+	if result, ok := convertNumbers(result).(map[string]interface{}); ok {
+		*raw = result
+	}
 }
 
 func (flatRaw FlatRaw) ModeFilter(modeFilterJson datatypes.JSON) bool {
@@ -90,7 +91,10 @@ func convertNumbers(data interface{}) interface{} {
 		for i, v := range data {
 			data[i] = convertNumbers(v)
 		}
+	default:
+		logrus.Errorf("convert numbers: unknown type: %T", data)
 	}
+
 	return data
 }
 
@@ -104,9 +108,13 @@ func (flatRaw *FlatRaw) StringifyMap() map[string]string {
 
 func (raw *Raw) ToMessageArgs(messageTemplate string) []string {
 	tmpl := messageTemplate
-	t := template.Must(template.New("example").Parse(tmpl))
+	parse, err := template.New("example").Parse(tmpl)
+	if err != nil {
+		logrus.Error(err)
+	}
+	t := template.Must(parse, nil)
 	var resultBuffer bytes.Buffer
-	err := t.Execute(&resultBuffer, raw)
+	err = t.Execute(&resultBuffer, raw)
 	if err != nil {
 		return nil
 	}

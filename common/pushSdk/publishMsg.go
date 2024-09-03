@@ -90,7 +90,7 @@ func buildRequestBody(sender, receiver, templateId, templateParas, statusCallBac
 }
 
 func post(url string, param []byte, appInfo core.Signer) (string, error) {
-	if param == nil || appInfo == (core.Signer{}) {
+	if len(param) == 0 || appInfo == (core.Signer{}) {
 		return "", nil
 	}
 
