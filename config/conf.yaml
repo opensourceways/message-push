@@ -1,9 +1,9 @@
 kafka:
-  address:
+  address: 10.10.10.10
   version: 2.3.0
-  mq_cert:
-  user_name:
-  password:
+  mq_cert: xsdfcscdwsxcsdcdsafewcs
+  user_name: shishupei
+  password: 3ew2cjiowe0rifwveo
   algorithm: sha512
   skip_cert_verify: true
 
