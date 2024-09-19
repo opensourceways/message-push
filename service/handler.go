@@ -115,8 +115,8 @@ func sendInnerMessage(event dto.CloudEvents, recipient bo.RecipientPushConfig) d
 }
 
 func sendMail(event dto.CloudEvents, recipient bo.RecipientPushConfig, emailConfig pushSdk.EmailConfig) dto.PushResult {
-	return pushSdk.SendEmail(event.Extensions()["title"].(string),
-		event.Extensions()["summary"].(string), recipient, emailConfig)
+	return pushSdk.SendEmail(event.Extensions()["mailTitle"].(string),
+		event.Extensions()["mailSummary"].(string), recipient, emailConfig)
 }
 
 func insertData(eurBuildEvent dto.CloudEvents, flatRaw dto.FlatRaw, result dto.PushResult) {
