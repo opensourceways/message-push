@@ -1,5 +1,5 @@
 kafka:
-  topic: openEuler_meeting_Event
+  topic: cve_issue_event
   group: message-push-local
 push:
   message:

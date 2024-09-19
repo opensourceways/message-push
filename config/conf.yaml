@@ -1,25 +1,25 @@
 kafka:
-  address:
+  address: 10.10.10.10
   version: 2.3.0
-  mq_cert:
-  user_name: kafka-test
-  password:
+  mq_cert: xsdfcscdwsxcsdcdsafewcs
+  user_name: shishupei
+  password: 3ew2cjiowe0rifwveo
   algorithm: sha512
   skip_cert_verify: true
 
 postgresql:
   host:
-  user: message_center
-  port: 30051
+  user:
+  port:
   pwd:
-  database: message_center
+  database:
   life: 1000
   max_conn: 500
   max_idle: 250
 
 cassandra:
   host:
-  user: rwuser
-  port: 8635
+  user:
+  port:
   pwd:
-  keyspace: message_center
+  keyspace:

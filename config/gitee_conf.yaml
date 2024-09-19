@@ -22,10 +22,10 @@ push:
     api_address:
     sender:
     template_id:
-    signature: 开源社区
+    signature:
   email:
-    smtp_host: smtp.163.com
+    smtp_host:
     smtp_password:
-    smtp_port: 25
-    smtp_sender: openeuler
+    smtp_port:
+    smtp_sender:
     smtp_username:

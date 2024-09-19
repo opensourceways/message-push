@@ -2,6 +2,7 @@ package cassandra
 
 import (
 	"github.com/gocql/gocql"
+	"log"
 )
 
 var (
@@ -18,7 +19,7 @@ func Init(cfg *Config) error {
 	}
 	sessionInstance, err := cluster.CreateSession()
 	if err != nil {
-		panic(err)
+		log.Println("cassandra init session err:", err)
 	}
 	session = sessionInstance
 	//defer sessionInstance.Close()

@@ -9,7 +9,6 @@ import (
 	"github.com/opensourceways/message-push/common/postgresql"
 	"github.com/opensourceways/message-push/models/bo"
 	"github.com/opensourceways/message-push/models/do"
-	"github.com/sirupsen/logrus"
 	"github.com/todocoder/go-stream/stream"
 )
 
@@ -83,9 +82,6 @@ func (event CloudEvents) Message() ([]byte, error) {
 func (event CloudEvents) GetRecipient() []bo.RecipientPushConfig {
 	subscribePushConfigs := event.getSubscribeFromDB()
 	relatedPushConfigs := event.getRelatedFromDB()
-
-	logrus.Infof("the subscribe data is %v, the related data is %v",
-		subscribePushConfigs, relatedPushConfigs)
 	return mergeRecipient(subscribePushConfigs, relatedPushConfigs)
 }
 
@@ -144,7 +140,7 @@ func (event CloudEvents) SendInnerMessage(recipient bo.RecipientPushConfig) Push
 		Source:      event.Source(),
 		RecipientId: recipient.RecipientId,
 		IsRead:      false,
-		IsSpecial:   recipient.IsSpecial,
+		IsSpecial:   false,
 	}
 	return SaveDb(innerMessageDO)
 }

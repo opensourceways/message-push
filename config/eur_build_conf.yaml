@@ -1,6 +1,6 @@
 kafka:
   topic: eur_build_event
-  group: message-push
+  group: message-push-local
 push:
   message:
     app_info_key:
@@ -8,10 +8,10 @@ push:
     api_address:
     sender:
     template_id:
-    signature: 开源社区
+    signature:
   email:
     smtp_host:
     smtp_password:
-    smtp_port: 25
-    smtp_sender: openeuler
+    smtp_port:
+    smtp_sender:
     smtp_username:
