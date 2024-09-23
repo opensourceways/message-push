@@ -2,13 +2,14 @@ package dto
 
 import (
 	"bytes"
+	"strings"
+	"text/template"
+
 	"github.com/go-playground/validator/v10"
 	"github.com/goccy/go-json"
 	"github.com/opensourceways/message-push/utils"
 	"github.com/sirupsen/logrus"
 	"gorm.io/datatypes"
-	"strings"
-	"text/template"
 )
 
 type FlatRaw map[string]interface{}
@@ -92,7 +93,7 @@ func convertNumbers(data interface{}) interface{} {
 			data[i] = convertNumbers(v)
 		}
 	default:
-		logrus.Errorf("convert numbers: unknown type: %T", data)
+		logrus.Debugf("convert numbers: unknown type: %T", data)
 	}
 
 	return data

@@ -2,11 +2,13 @@ package pushSdk
 
 import (
 	"crypto/tls"
-	"github.com/opensourceways/message-push/models/bo"
-	"github.com/opensourceways/message-push/models/dto"
-	"gopkg.in/mail.v2"
 	"log"
 	"time"
+
+	"github.com/opensourceways/message-push/models/bo"
+	"github.com/opensourceways/message-push/models/dto"
+	"github.com/sirupsen/logrus"
+	"gopkg.in/mail.v2"
 )
 
 type EmailConfig struct {
@@ -52,5 +54,6 @@ func sendSSLEmail(receiver, subject, htmlBody string, config EmailConfig) error 
 		log.Fatal(err)
 		return err
 	}
+	logrus.Infof("send email successfully!!!")
 	return nil
 }
