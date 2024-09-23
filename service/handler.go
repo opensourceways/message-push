@@ -98,6 +98,7 @@ func handleMessage(event dto.CloudEvents, raw dto.Raw, flatRaw dto.FlatRaw, push
 }
 
 func handleMail(event dto.CloudEvents, flatRaw dto.FlatRaw, pushConfig bo.RecipientPushConfig, push config.PushConfig) {
+	logrus.Infof("needEmail is %v", pushConfig.NeedMail)
 	if pushConfig.NeedMail {
 		res := sendMail(event, pushConfig, push.EmailConfig)
 		if res.Res == dto.Failed {
