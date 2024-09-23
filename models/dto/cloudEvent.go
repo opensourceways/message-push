@@ -97,7 +97,7 @@ func (event CloudEvents) getRelatedFromDB() []bo.RecipientPushConfig {
 	postgresql.DB().Raw(
 		related_sql,
 		relatedUsers, relatedUsers, relatedUsers, relatedUsers, relatedUsers,
-	).Debug().Scan(&subscribePushConfigs)
+	).Scan(&subscribePushConfigs)
 	return subscribePushConfigs
 }
 
@@ -107,7 +107,7 @@ func (event CloudEvents) getSubscribeFromDB() []bo.RecipientPushConfig {
 	postgresql.DB().Raw(
 		subscribe_sql,
 		relatedUsers, relatedUsers, relatedUsers, relatedUsers, relatedUsers, event.Source(), event.Type(),
-	).Debug().Scan(&subscribePushConfigs)
+	).Scan(&subscribePushConfigs)
 	return subscribePushConfigs
 }
 
