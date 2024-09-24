@@ -6,11 +6,11 @@ import (
 	"time"
 
 	cloudevents "github.com/cloudevents/sdk-go/v2"
+	"github.com/todocoder/go-stream/stream"
+
 	"github.com/opensourceways/message-push/common/postgresql"
 	"github.com/opensourceways/message-push/models/bo"
 	"github.com/opensourceways/message-push/models/do"
-	"github.com/sirupsen/logrus"
-	"github.com/todocoder/go-stream/stream"
 )
 
 const related_sql = `
@@ -81,10 +81,9 @@ func (event CloudEvents) Message() ([]byte, error) {
 }
 
 func (event CloudEvents) GetRecipient() []bo.RecipientPushConfig {
+	relatedPushConfigs := event.getRelatedFromDB()
 	subscribePushConfigs := event.getSubscribeFromDB()
-	logrus.Infof("the subs push configs is %v", subscribePushConfigs)
-	logrus.Infof("the related push configs is %v", event.getRelatedFromDB())
-	return subscribePushConfigs
+	return mergeRecipient(subscribePushConfigs, relatedPushConfigs)
 }
 
 func mergeRecipient(subscribe []bo.RecipientPushConfig, related []bo.RecipientPushConfig) []bo.RecipientPushConfig {
