@@ -61,6 +61,9 @@ func handle(event dto.CloudEvents, push config.PushConfig) error {
 	if recipients == nil || len(recipients) == 0 {
 		return nil
 	}
+	jsonData, _ := json.MarshalIndent(recipients, "", "  ")
+	logrus.Infof("the result is %v", string(jsonData))
+
 	flatRaw := raw.Flatten()
 	stream.Of(recipients...).ForEach(
 		func(item bo.RecipientPushConfig) {
@@ -98,8 +101,6 @@ func handleMessage(event dto.CloudEvents, raw dto.Raw, flatRaw dto.FlatRaw, push
 }
 
 func handleMail(event dto.CloudEvents, flatRaw dto.FlatRaw, pushConfig bo.RecipientPushConfig, push config.PushConfig) {
-	jsonData, _ := json.MarshalIndent(pushConfig, "", "  ")
-	logrus.Infof("the result is %v", string(jsonData))
 	if pushConfig.NeedMail {
 		res := sendMail(event, pushConfig, push.EmailConfig)
 		if res.Res == dto.Failed {
