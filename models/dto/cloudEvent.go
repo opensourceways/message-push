@@ -89,14 +89,14 @@ func (event CloudEvents) GetRecipient() []bo.RecipientPushConfig {
 
 func mergeRecipient(subscribe []bo.RecipientPushConfig, related []bo.RecipientPushConfig) []bo.RecipientPushConfig {
 	jsonData1, _ := json.MarshalIndent(subscribe, "", "  ")
-	logrus.Infof("the subs is %v", jsonData1)
+	logrus.Infof("the subs is %v", string(jsonData1))
 	jsonData2, _ := json.MarshalIndent(related, "", "  ")
-	logrus.Infof("the related is %v", jsonData2)
+	logrus.Infof("the related is %v", string(jsonData2))
 	result := stream.Of(subscribe...).Concat(stream.Of(related...)).Distinct(func(item bo.RecipientPushConfig) any {
 		return item.RecipientId
 	}).ToSlice()
 	jsonData3, _ := json.MarshalIndent(result, "", "  ")
-	logrus.Infof("the related is %v", jsonData3)
+	logrus.Infof("the result is %v", string(jsonData3))
 	return stream.Of(subscribe...).Concat(stream.Of(related...)).Distinct(func(item bo.RecipientPushConfig) any {
 		return item.RecipientId
 	}).ToSlice()
