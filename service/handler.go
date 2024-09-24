@@ -125,6 +125,8 @@ func sendInnerMessage(event dto.CloudEvents, recipient bo.RecipientPushConfig) d
 }
 
 func sendMail(event dto.CloudEvents, recipient bo.RecipientPushConfig, emailConfig pushSdk.EmailConfig) dto.PushResult {
+	logrus.Infof("the mailTitle is %v, the mailSummay is %v", event.Extensions()["mailTitle"],
+		event.Extensions()["mailSummary"])
 	return pushSdk.SendEmail(event.Extensions()["mailTitle"].(string),
 		event.Extensions()["mailSummary"].(string), recipient, emailConfig)
 }
