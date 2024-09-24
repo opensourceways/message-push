@@ -6,6 +6,7 @@ import (
 	"time"
 
 	cloudevents "github.com/cloudevents/sdk-go/v2"
+	"github.com/sirupsen/logrus"
 	"github.com/todocoder/go-stream/stream"
 
 	"github.com/opensourceways/message-push/common/postgresql"
@@ -87,6 +88,12 @@ func (event CloudEvents) GetRecipient() []bo.RecipientPushConfig {
 }
 
 func mergeRecipient(subscribe []bo.RecipientPushConfig, related []bo.RecipientPushConfig) []bo.RecipientPushConfig {
+	logrus.Infof("the subs is %v", subscribe)
+	logrus.Infof("the related is %v", related)
+
+	logrus.Infof("the result is %v", stream.Of(subscribe...).Concat(stream.Of(related...)).Distinct(func(item bo.RecipientPushConfig) any {
+		return item.RecipientId
+	}).ToSlice())
 	return stream.Of(subscribe...).Concat(stream.Of(related...)).Distinct(func(item bo.RecipientPushConfig) any {
 		return item.RecipientId
 	}).ToSlice()
