@@ -61,9 +61,6 @@ func handle(event dto.CloudEvents, push config.PushConfig) error {
 	if recipients == nil || len(recipients) == 0 {
 		return nil
 	}
-	jsonData, _ := json.MarshalIndent(recipients, "", "  ")
-	logrus.Infof("the result is %v", string(jsonData))
-
 	flatRaw := raw.Flatten()
 	stream.Of(recipients...).ForEach(
 		func(item bo.RecipientPushConfig) {
