@@ -98,7 +98,7 @@ func handleMessage(event dto.CloudEvents, raw dto.Raw, flatRaw dto.FlatRaw, push
 }
 
 func handleMail(event dto.CloudEvents, flatRaw dto.FlatRaw, pushConfig bo.RecipientPushConfig, push config.PushConfig) {
-	jsonData, _ := json.MarshalIndent(push, "", "  ")
+	jsonData, _ := json.MarshalIndent(pushConfig, "", "  ")
 	logrus.Infof("the result is %v", string(jsonData))
 	if pushConfig.NeedMail {
 		res := sendMail(event, pushConfig, push.EmailConfig)
