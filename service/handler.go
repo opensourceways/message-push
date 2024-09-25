@@ -66,16 +66,25 @@ func handle(event dto.CloudEvents, push config.PushConfig) error {
 	})
 	logrus.Info(recipients)
 	flatRaw := raw.Flatten()
-	stream.Of(recipients...).ForEach(
-		func(item bo.RecipientPushConfig) {
+	processedInnerRecipients := make(map[string]struct{}) // 用于追踪已处理的接收者
+	processedRecipients := make(map[string]struct{})
+
+	// 遍历接收者
+	stream.Of(recipients...).ForEach(func(item bo.RecipientPushConfig) {
+		recipientKey := item.RecipientId
+		if _, exists := processedInnerRecipients[recipientKey]; !exists {
 			handleInnerMessage(event, flatRaw, item)
+			processedInnerRecipients[recipientKey] = struct{}{} // 标记为已处理
+		}
+		if _, exists := processedRecipients[recipientKey]; !exists {
 			isFilter := flatRaw.ModeFilter(item.ModeFilter)
 			if isFilter {
 				handleMessage(event, raw, flatRaw, item, push)
 				handleMail(event, flatRaw, item, push)
+				processedRecipients[recipientKey] = struct{}{}
 			}
-		},
-	)
+		}
+	})
 	return nil
 }
 
