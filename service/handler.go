@@ -61,6 +61,10 @@ func handle(event dto.CloudEvents, push config.PushConfig) error {
 	if recipients == nil || len(recipients) == 0 {
 		return nil
 	}
+	logrus.SetFormatter(&logrus.JSONFormatter{
+		PrettyPrint: true, // 启用美化输出
+	})
+	logrus.Infof("the data is %v", recipients)
 	flatRaw := raw.Flatten()
 	stream.Of(recipients...).ForEach(
 		func(item bo.RecipientPushConfig) {
