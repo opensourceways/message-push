@@ -64,12 +64,13 @@ func handle(event dto.CloudEvents, push config.PushConfig) error {
 	logrus.SetFormatter(&logrus.JSONFormatter{
 		PrettyPrint: true, // 启用美化输出
 	})
-	logrus.Infof("the data is %v", recipients)
 	flatRaw := raw.Flatten()
 	stream.Of(recipients...).ForEach(
 		func(item bo.RecipientPushConfig) {
 			handleInnerMessage(event, flatRaw, item)
 			isFilter := flatRaw.ModeFilter(item.ModeFilter)
+			logrus.Infof("the data is %v", item.ModeFilter)
+			logrus.Infof("the bool is %v", isFilter)
 			if isFilter {
 				handleMessage(event, raw, flatRaw, item, push)
 				handleMail(event, flatRaw, item, push)
