@@ -6,7 +6,7 @@ import (
 	"time"
 
 	cloudevents "github.com/cloudevents/sdk-go/v2"
-	"github.com/todocoder/go-stream/stream"
+	"k8s.io/utils/strings/slices"
 
 	"github.com/opensourceways/message-push/common/postgresql"
 	"github.com/opensourceways/message-push/models/bo"
@@ -87,9 +87,21 @@ func (event CloudEvents) GetRecipient() []bo.RecipientPushConfig {
 }
 
 func mergeRecipient(subscribe []bo.RecipientPushConfig, related []bo.RecipientPushConfig) []bo.RecipientPushConfig {
-	return stream.Of(subscribe...).Concat(stream.Of(related...)).Distinct(func(item bo.RecipientPushConfig) any {
-		return item.RecipientId
-	}).ToSlice()
+	var res []string
+	var resConfig []bo.RecipientPushConfig
+	for _, subs := range subscribe {
+		if !slices.Contains(res, subs.RecipientId) {
+			res = append(res, subs.RecipientId)
+			resConfig = append(resConfig, subs)
+		}
+	}
+	for _, relate := range related {
+		if !slices.Contains(res, relate.RecipientId) {
+			res = append(res, relate.RecipientId)
+			resConfig = append(resConfig, relate)
+		}
+	}
+	return resConfig
 }
 
 func (event CloudEvents) getRelatedFromDB() []bo.RecipientPushConfig {
