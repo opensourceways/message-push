@@ -64,6 +64,7 @@ func handle(event dto.CloudEvents, push config.PushConfig) error {
 	logrus.SetFormatter(&logrus.JSONFormatter{
 		PrettyPrint: true, // 启用美化输出
 	})
+	logrus.Info(recipients)
 	flatRaw := raw.Flatten()
 	stream.Of(recipients...).ForEach(
 		func(item bo.RecipientPushConfig) {
