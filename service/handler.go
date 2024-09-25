@@ -66,7 +66,6 @@ func handle(event dto.CloudEvents, push config.PushConfig) error {
 		func(item bo.RecipientPushConfig) {
 			handleInnerMessage(event, flatRaw, item)
 			isFilter := flatRaw.ModeFilter(item.ModeFilter)
-			logrus.Infof("the filter is %v %v, email is %v,", isFilter, item.ModeFilter, item.Mail)
 			if isFilter {
 				handleMessage(event, raw, flatRaw, item, push)
 				handleMail(event, flatRaw, item, push)
