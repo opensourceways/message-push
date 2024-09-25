@@ -69,8 +69,6 @@ func handle(event dto.CloudEvents, push config.PushConfig) error {
 		func(item bo.RecipientPushConfig) {
 			handleInnerMessage(event, flatRaw, item)
 			isFilter := flatRaw.ModeFilter(item.ModeFilter)
-			logrus.Infof("the data is %v", item.ModeFilter)
-			logrus.Infof("the bool is %v", isFilter)
 			if isFilter {
 				handleMessage(event, raw, flatRaw, item, push)
 				handleMail(event, flatRaw, item, push)
@@ -103,6 +101,8 @@ func handleMessage(event dto.CloudEvents, raw dto.Raw, flatRaw dto.FlatRaw, push
 }
 
 func handleMail(event dto.CloudEvents, flatRaw dto.FlatRaw, pushConfig bo.RecipientPushConfig, push config.PushConfig) {
+	logrus.Infof("the need mail is %v", pushConfig.NeedMail)
+	logrus.Infof("the recipient is %v", pushConfig.Mail)
 	if pushConfig.NeedMail {
 		res := sendMail(event, pushConfig, push.EmailConfig)
 		if res.Res == dto.Failed {
