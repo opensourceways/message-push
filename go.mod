@@ -1,7 +1,6 @@
 module github.com/opensourceways/message-push
 
 require (
-	github.com/anshal21/json-flattener v1.0.0
 	github.com/cloudevents/sdk-go/v2 v2.15.2
 	github.com/go-playground/validator/v10 v10.19.0
 	github.com/goccy/go-json v0.10.2
@@ -12,10 +11,12 @@ require (
 	github.com/opensourceways/server-common-lib v0.0.0-20240325033300-a9187b20647e
 	github.com/sirupsen/logrus v1.9.3
 	github.com/todocoder/go-stream v1.1.0
+	gopkg.in/mail.v2 v2.3.1
 	gorm.io/datatypes v1.2.0
 	gorm.io/driver/postgres v1.5.2
 	gorm.io/gorm v1.25.4
 	huaweicloud.com/apig/signer v0.0.0
+	k8s.io/utils v0.0.0-20230726121419-3b25d923346b
 	sigs.k8s.io/yaml v1.3.0
 )
 
@@ -66,7 +67,6 @@ require (
 	golang.org/x/text v0.15.0 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
-	gopkg.in/mail.v2 v2.3.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gorm.io/driver/mysql v1.4.7 // indirect
 	k8s.io/apimachinery v0.29.3 // indirect
