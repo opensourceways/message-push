@@ -3,6 +3,7 @@ package dto
 import (
 	"encoding/json"
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 
@@ -88,9 +89,24 @@ func (event CloudEvents) GetRecipient() []bo.RecipientPushConfig {
 }
 
 func mergeRecipient(subscribe []bo.RecipientPushConfig, related []bo.RecipientPushConfig) []bo.RecipientPushConfig {
-	return stream.Of(subscribe...).Concat(stream.Of(related...)).Distinct(func(item bo.RecipientPushConfig) any {
+	var unique []string
+	subs := stream.Of(subscribe...).Distinct(func(item bo.
+		RecipientPushConfig) any {
 		return fmt.Sprintf("%s:%v", item.RecipientId, item.ModeFilter)
 	}).ToSlice()
+	for _, sub := range subs {
+		if !slices.Contains(unique, sub.RecipientId) {
+			unique = append(unique, sub.RecipientId)
+		}
+	}
+	for _, relate := range related {
+		if slices.Contains(unique, relate.RecipientId) {
+			continue
+		}
+		unique = append(unique, relate.RecipientId)
+		subs = append(subs, relate)
+	}
+	return subs
 }
 
 func (event CloudEvents) getRelatedFromDB() []bo.RecipientPushConfig {
