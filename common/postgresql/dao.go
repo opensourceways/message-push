@@ -63,7 +63,7 @@ func (dao *daoImpl) GetRecord(filter, result interface{}) error {
 	err := dao.DB().Where(filter).First(result).Error
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return domain.NewErrorResourceNotExists(errors.New("not found"))
+		return domain.NewErrorResourceNotExists(gorm.ErrRecordNotFound)
 	}
 
 	return err
@@ -74,7 +74,7 @@ func (dao *daoImpl) GetByPrimaryKey(row interface{}) error {
 	err := dao.DB().First(row).Error
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return domain.NewErrorResourceNotExists(errors.New("not found"))
+		return domain.NewErrorResourceNotExists(gorm.ErrRecordNotFound)
 	}
 
 	return err
@@ -85,7 +85,7 @@ func (dao *daoImpl) DeleteByPrimaryKey(row interface{}) error {
 	err := dao.DB().Delete(row).Error
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return domain.NewErrorResourceNotExists(errors.New("not found"))
+		return domain.NewErrorResourceNotExists(gorm.ErrRecordNotFound)
 	}
 
 	return err
