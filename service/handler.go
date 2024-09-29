@@ -91,38 +91,38 @@ func handle(event dto.CloudEvents, push config.PushConfig) error {
 
 func handleInnerMessage(event dto.CloudEvents, flatRaw dto.FlatRaw, pushConfig bo.RecipientPushConfig) {
 	res := sendInnerMessage(event, pushConfig)
+	sendInnerMessageLog := "send inner message %s %s"
 	if res.Res == dto.Failed {
-		logrus.Info("send inner message ", event.ID()+" failed")
+		logrus.Info(sendInnerMessageLog, event.ID(), "failed")
 	} else {
-		logrus.Info("send inner message ", event.ID()+" success")
+		logrus.Info(sendInnerMessageLog, event.ID(), "success")
 	}
 	//insertData(event, flatRaw, res)
 }
 
 func handleMessage(event dto.CloudEvents, raw dto.Raw, flatRaw dto.FlatRaw, pushConfig bo.RecipientPushConfig, push config.PushConfig) {
 	if pushConfig.NeedMessage {
+		sendMessageLog := "send message %s %s %s"
 		res := sendHWCloudMessage(raw, pushConfig, push.MsgConfig)
 		if res.Res == dto.Failed {
-			logrus.Info("send message ", event.ID()+" failed", pushConfig.Message)
+			logrus.Info(sendMessageLog, event.ID(), "failed", pushConfig.Message)
 		} else {
-			logrus.Info("send message ", event.ID()+" success", pushConfig.Message)
+			logrus.Info(sendMessageLog, event.ID(), "success", pushConfig.Message)
 		}
 		//insertData(event, flatRaw, res)
 	}
 }
 
 func handleMail(event dto.CloudEvents, flatRaw dto.FlatRaw, pushConfig bo.RecipientPushConfig, push config.PushConfig) {
-	logrus.Infof("the need mail is %v", pushConfig.NeedMail)
-	logrus.Infof("the recipient is %v", pushConfig.Mail)
 	if pushConfig.NeedMail {
+		sendMailLog := "send mail %s %s %s"
 		res := sendMail(event, pushConfig, push.EmailConfig)
 		if res.Res == dto.Failed {
-			logrus.Info("send mail ", event.ID()+" failed", pushConfig.Mail)
+			logrus.Infof(sendMailLog, event.ID(), "failed", pushConfig.Mail)
 		} else {
-			logrus.Info("send mail ", event.ID()+" success", pushConfig.Mail)
+			logrus.Infof(sendMailLog, event.ID(), "success", pushConfig.Mail)
 		}
 		//insertData(event, flatRaw, res)
-		logrus.Info("send mail ", event.ID()+" success，接收人", pushConfig.Mail)
 	}
 }
 
