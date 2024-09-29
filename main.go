@@ -3,14 +3,16 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
+
+	"github.com/opensourceways/server-common-lib/logrusutil"
+	"github.com/sirupsen/logrus"
+
 	"github.com/opensourceways/message-push/common/kafka"
 	"github.com/opensourceways/message-push/common/postgresql"
 	"github.com/opensourceways/message-push/config"
 	"github.com/opensourceways/message-push/service"
 	"github.com/opensourceways/message-push/utils"
-	"github.com/opensourceways/server-common-lib/logrusutil"
-	"github.com/sirupsen/logrus"
-	"os"
 )
 
 func main() {
