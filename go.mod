@@ -16,7 +16,6 @@ require (
 	gorm.io/driver/postgres v1.5.2
 	gorm.io/gorm v1.25.4
 	huaweicloud.com/apig/signer v0.0.0
-	k8s.io/utils v0.0.0-20230726121419-3b25d923346b
 	sigs.k8s.io/yaml v1.3.0
 )
 
