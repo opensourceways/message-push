@@ -2,14 +2,17 @@ package dto
 
 import (
 	"encoding/json"
+	"fmt"
+	"slices"
 	"strings"
 	"time"
 
 	cloudevents "github.com/cloudevents/sdk-go/v2"
+	"github.com/todocoder/go-stream/stream"
+
 	"github.com/opensourceways/message-push/common/postgresql"
 	"github.com/opensourceways/message-push/models/bo"
 	"github.com/opensourceways/message-push/models/do"
-	"github.com/todocoder/go-stream/stream"
 )
 
 const related_sql = `
@@ -80,15 +83,30 @@ func (event CloudEvents) Message() ([]byte, error) {
 }
 
 func (event CloudEvents) GetRecipient() []bo.RecipientPushConfig {
-	subscribePushConfigs := event.getSubscribeFromDB()
 	relatedPushConfigs := event.getRelatedFromDB()
+	subscribePushConfigs := event.getSubscribeFromDB()
 	return mergeRecipient(subscribePushConfigs, relatedPushConfigs)
 }
 
 func mergeRecipient(subscribe []bo.RecipientPushConfig, related []bo.RecipientPushConfig) []bo.RecipientPushConfig {
-	return stream.Of(subscribe...).Concat(stream.Of(related...)).Distinct(func(item bo.RecipientPushConfig) any {
-		return item.RecipientId
+	var unique []string
+	subs := stream.Of(subscribe...).Distinct(func(item bo.
+		RecipientPushConfig) any {
+		return fmt.Sprintf("%s:%v", item.RecipientId, item.ModeFilter)
 	}).ToSlice()
+	for _, sub := range subs {
+		if !slices.Contains(unique, sub.RecipientId) {
+			unique = append(unique, sub.RecipientId)
+		}
+	}
+	for _, relate := range related {
+		if slices.Contains(unique, relate.RecipientId) {
+			continue
+		}
+		unique = append(unique, relate.RecipientId)
+		subs = append(subs, relate)
+	}
+	return subs
 }
 
 func (event CloudEvents) getRelatedFromDB() []bo.RecipientPushConfig {
