@@ -5,13 +5,14 @@ import (
 
 	"github.com/goccy/go-json"
 	"github.com/gocql/gocql"
+	"github.com/sirupsen/logrus"
+	"github.com/todocoder/go-stream/stream"
+
 	"github.com/opensourceways/message-push/common/cassandra"
 	"github.com/opensourceways/message-push/common/pushSdk"
 	"github.com/opensourceways/message-push/config"
 	"github.com/opensourceways/message-push/models/bo"
 	"github.com/opensourceways/message-push/models/dto"
-	"github.com/sirupsen/logrus"
-	"github.com/todocoder/go-stream/stream"
 )
 
 func GiteeHandle(payload []byte, _ map[string]string) error {
@@ -61,52 +62,67 @@ func handle(event dto.CloudEvents, push config.PushConfig) error {
 	if recipients == nil || len(recipients) == 0 {
 		return nil
 	}
+	logrus.SetFormatter(&logrus.JSONFormatter{
+		PrettyPrint: true, // 启用美化输出
+	})
+	logrus.Info(recipients)
 	flatRaw := raw.Flatten()
-	stream.Of(recipients...).ForEach(
-		func(item bo.RecipientPushConfig) {
+	processedInnerRecipients := make(map[string]struct{}) // 用于追踪已处理的接收者
+	processedRecipients := make(map[string]struct{})
+
+	// 遍历接收者
+	stream.Of(recipients...).ForEach(func(item bo.RecipientPushConfig) {
+		recipientKey := item.RecipientId
+		if _, exists := processedInnerRecipients[recipientKey]; !exists {
 			handleInnerMessage(event, flatRaw, item)
+			processedInnerRecipients[recipientKey] = struct{}{} // 标记为已处理
+		}
+		if _, exists := processedRecipients[recipientKey]; !exists {
 			isFilter := flatRaw.ModeFilter(item.ModeFilter)
 			if isFilter {
 				handleMessage(event, raw, flatRaw, item, push)
 				handleMail(event, flatRaw, item, push)
+				processedRecipients[recipientKey] = struct{}{}
 			}
-		},
-	)
+		}
+	})
 	return nil
 }
 
 func handleInnerMessage(event dto.CloudEvents, flatRaw dto.FlatRaw, pushConfig bo.RecipientPushConfig) {
 	res := sendInnerMessage(event, pushConfig)
+	sendInnerMessageLog := "send inner message %s %s"
 	if res.Res == dto.Failed {
-		logrus.Info("send inner message ", event.ID()+" failed")
+		logrus.Info(sendInnerMessageLog, event.ID(), "failed")
 	} else {
-		logrus.Info("send inner message ", event.ID()+" success")
+		logrus.Info(sendInnerMessageLog, event.ID(), "success")
 	}
-	insertData(event, flatRaw, res)
+	//insertData(event, flatRaw, res)
 }
 
 func handleMessage(event dto.CloudEvents, raw dto.Raw, flatRaw dto.FlatRaw, pushConfig bo.RecipientPushConfig, push config.PushConfig) {
 	if pushConfig.NeedMessage {
+		sendMessageLog := "send message %s %s %s"
 		res := sendHWCloudMessage(raw, pushConfig, push.MsgConfig)
 		if res.Res == dto.Failed {
-			logrus.Info("send message ", event.ID()+" failed", pushConfig.Message)
+			logrus.Info(sendMessageLog, event.ID(), "failed", pushConfig.Message)
 		} else {
-			logrus.Info("send message ", event.ID()+" success", pushConfig.Message)
+			logrus.Info(sendMessageLog, event.ID(), "success", pushConfig.Message)
 		}
-		insertData(event, flatRaw, res)
+		//insertData(event, flatRaw, res)
 	}
 }
 
 func handleMail(event dto.CloudEvents, flatRaw dto.FlatRaw, pushConfig bo.RecipientPushConfig, push config.PushConfig) {
 	if pushConfig.NeedMail {
+		sendMailLog := "send mail %s %s %s"
 		res := sendMail(event, pushConfig, push.EmailConfig)
 		if res.Res == dto.Failed {
-			logrus.Info("send mail ", event.ID()+" failed", pushConfig.Mail)
+			logrus.Infof(sendMailLog, event.ID(), "failed", pushConfig.Mail)
 		} else {
-			logrus.Info("send mail ", event.ID()+" success", pushConfig.Mail)
+			logrus.Infof(sendMailLog, event.ID(), "success", pushConfig.Mail)
 		}
 		//insertData(event, flatRaw, res)
-		logrus.Info("send mail ", event.ID()+" success，接收人", pushConfig.Mail)
 	}
 }
 
@@ -124,8 +140,8 @@ func sendInnerMessage(event dto.CloudEvents, recipient bo.RecipientPushConfig) d
 }
 
 func sendMail(event dto.CloudEvents, recipient bo.RecipientPushConfig, emailConfig pushSdk.EmailConfig) dto.PushResult {
-	return pushSdk.SendEmail(event.Extensions()["mailTitle"].(string),
-		event.Extensions()["mailSummary"].(string), recipient, emailConfig)
+	return pushSdk.SendEmail(event.Extensions()["mailtitle"].(string),
+		event.Extensions()["mailsummary"].(string), recipient, emailConfig)
 }
 
 func insertData(eurBuildEvent dto.CloudEvents, flatRaw dto.FlatRaw, result dto.PushResult) {

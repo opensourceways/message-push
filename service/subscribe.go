@@ -2,8 +2,9 @@ package service
 
 import (
 	kfklib "github.com/opensourceways/kafka-lib/agent"
-	"github.com/opensourceways/message-push/config"
 	"github.com/sirupsen/logrus"
+
+	"github.com/opensourceways/message-push/config"
 )
 
 func SubscribeEurEvent() {
