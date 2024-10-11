@@ -92,7 +92,7 @@ func handleSubscribe(event dto.CloudEvents, push config.PushConfig) error {
 func handleRelated(event dto.CloudEvents) error {
 	raw := make(dto.Raw)
 	raw.FromJson(event.Data())
-	recipients := event.GetSubscribeFromDB()
+	recipients := event.GetRelatedFromDB()
 
 	if recipients == nil || len(recipients) == 0 {
 		return nil
