@@ -82,7 +82,9 @@ func handleSubscribe(event dto.CloudEvents, push config.PushConfig) error {
 			isFilter := flatRaw.ModeFilter(item.ModeFilter)
 			if isFilter {
 				handleMail(event, flatRaw, item, push)
-				processedRecipients[recipientKey] = struct{}{}
+				if item.NeedMail {
+					processedRecipients[recipientKey] = struct{}{}
+				}
 			}
 		}
 	})
