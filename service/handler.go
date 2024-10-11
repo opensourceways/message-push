@@ -78,6 +78,7 @@ func handle(event dto.CloudEvents, push config.PushConfig) error {
 			processedInnerRecipients[recipientKey] = struct{}{} // 标记为已处理
 		}
 		if _, exists := processedRecipients[recipientKey]; !exists {
+			logrus.Infof("send email")
 			isFilter := flatRaw.ModeFilter(item.ModeFilter)
 			if isFilter {
 				handleMessage(event, raw, flatRaw, item, push)
