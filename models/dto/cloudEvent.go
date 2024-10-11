@@ -8,6 +8,7 @@ import (
 	"time"
 
 	cloudevents "github.com/cloudevents/sdk-go/v2"
+	"github.com/sirupsen/logrus"
 	"github.com/todocoder/go-stream/stream"
 
 	"github.com/opensourceways/message-push/common/postgresql"
@@ -91,11 +92,12 @@ func (event CloudEvents) GetRecipient() []bo.RecipientPushConfig {
 func mergeRecipient(subscribe []bo.RecipientPushConfig, related []bo.RecipientPushConfig) []bo.RecipientPushConfig {
 	var unique []string
 	subs := stream.Of(subscribe...).Distinct(func(item bo.
-		RecipientPushConfig) any {
+	RecipientPushConfig) any {
 		return fmt.Sprintf("%s:%v", item.RecipientId, item.ModeFilter)
 	}).ToSlice()
 	for _, sub := range subs {
 		if !slices.Contains(unique, sub.RecipientId) {
+			logrus.Infof("the mail is %v, subs config is %v", sub.Mail, sub.NeedMail)
 			unique = append(unique, sub.RecipientId)
 		}
 	}
