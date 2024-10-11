@@ -21,8 +21,9 @@ func GiteeHandle(payload []byte, _ map[string]string) error {
 	if msgBodyErr != nil {
 		return msgBodyErr
 	}
-	res := handle(event, config.GiteeConfigInstance.Push)
-	return res
+	handleRelated(event)
+	handleSubscribe(event, config.GiteeConfigInstance.Push)
+	return nil
 }
 
 func EurBuildHandle(payload []byte, _ map[string]string) error {
@@ -31,8 +32,9 @@ func EurBuildHandle(payload []byte, _ map[string]string) error {
 	if msgBodyErr != nil {
 		return msgBodyErr
 	}
-	res := handle(event, config.EurBuildConfigInstance.Push)
-	return res
+	handleRelated(event)
+	handleSubscribe(event, config.EurBuildConfigInstance.Push)
+	return nil
 }
 
 func OpenEulerMeetingHandle(payload []byte, _ map[string]string) error {
@@ -41,8 +43,9 @@ func OpenEulerMeetingHandle(payload []byte, _ map[string]string) error {
 	if msgBodyErr != nil {
 		return msgBodyErr
 	}
-	res := handle(event, config.MeetingConfigInstance.Push)
-	return res
+	handleRelated(event)
+	handleSubscribe(event, config.MeetingConfigInstance.Push)
+	return nil
 }
 
 func CVEHandle(payload []byte, _ map[string]string) error {
@@ -51,14 +54,46 @@ func CVEHandle(payload []byte, _ map[string]string) error {
 	if msgBodyErr != nil {
 		return msgBodyErr
 	}
-	res := handle(event, config.CVEConfigInstance.Push)
-	return res
+	handleRelated(event)
+	handleSubscribe(event, config.CVEConfigInstance.Push)
+	return nil
 }
 
-func handle(event dto.CloudEvents, push config.PushConfig) error {
+func handleSubscribe(event dto.CloudEvents, push config.PushConfig) error {
 	raw := make(dto.Raw)
 	raw.FromJson(event.Data())
-	recipients := event.GetRecipient()
+	recipients := event.GetSubscribeFromDB()
+
+	if recipients == nil || len(recipients) == 0 {
+		return nil
+	}
+	logrus.SetFormatter(&logrus.JSONFormatter{
+		PrettyPrint: true, // 启用美化输出
+	})
+	logrus.Info(recipients)
+	flatRaw := raw.Flatten()
+	processedRecipients := make(map[string]struct{})
+
+	// 遍历接收者
+	stream.Of(recipients...).ForEach(func(item bo.RecipientPushConfig) {
+		recipientKey := item.RecipientId
+		if _, exists := processedRecipients[recipientKey]; !exists {
+			logrus.Infof("send email, %v, %v", item.NeedMail, item.Mail)
+			isFilter := flatRaw.ModeFilter(item.ModeFilter)
+			if isFilter {
+				handleMail(event, flatRaw, item, push)
+				processedRecipients[recipientKey] = struct{}{}
+			}
+		}
+	})
+	return nil
+}
+
+func handleRelated(event dto.CloudEvents) error {
+	raw := make(dto.Raw)
+	raw.FromJson(event.Data())
+	recipients := event.GetSubscribeFromDB()
+
 	if recipients == nil || len(recipients) == 0 {
 		return nil
 	}
@@ -68,7 +103,6 @@ func handle(event dto.CloudEvents, push config.PushConfig) error {
 	logrus.Info(recipients)
 	flatRaw := raw.Flatten()
 	processedInnerRecipients := make(map[string]struct{}) // 用于追踪已处理的接收者
-	processedRecipients := make(map[string]struct{})
 
 	// 遍历接收者
 	stream.Of(recipients...).ForEach(func(item bo.RecipientPushConfig) {
@@ -76,15 +110,6 @@ func handle(event dto.CloudEvents, push config.PushConfig) error {
 		if _, exists := processedInnerRecipients[recipientKey]; !exists {
 			handleInnerMessage(event, flatRaw, item)
 			processedInnerRecipients[recipientKey] = struct{}{} // 标记为已处理
-		}
-		if _, exists := processedRecipients[recipientKey]; !exists {
-			logrus.Infof("send email, %v, %v", item.NeedMail, item.Mail)
-			isFilter := flatRaw.ModeFilter(item.ModeFilter)
-			if isFilter {
-				handleMessage(event, raw, flatRaw, item, push)
-				handleMail(event, flatRaw, item, push)
-				processedRecipients[recipientKey] = struct{}{}
-			}
 		}
 	})
 	return nil
