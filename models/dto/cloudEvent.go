@@ -95,6 +95,7 @@ func mergeRecipient(subscribe []bo.RecipientPushConfig, related []bo.RecipientPu
 	RecipientPushConfig) any {
 		return fmt.Sprintf("%s:%v", item.RecipientId, item.ModeFilter)
 	}).ToSlice()
+	logrus.Infof("before distinct is %v, after is %v", subscribe, subs)
 	for _, sub := range subs {
 		if !slices.Contains(unique, sub.RecipientId) {
 			logrus.Infof("the mail is %v, subs config is %v", sub.Mail, sub.NeedMail)
