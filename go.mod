@@ -10,6 +10,7 @@ require (
 	github.com/opensourceways/kafka-lib v0.0.0-20240410053850-1b04ade416f1
 	github.com/opensourceways/server-common-lib v0.0.0-20240325033300-a9187b20647e
 	github.com/sirupsen/logrus v1.9.3
+	github.com/stretchr/testify v1.9.0
 	github.com/todocoder/go-stream v1.1.0
 	gopkg.in/mail.v2 v2.3.1
 	gorm.io/datatypes v1.2.0
@@ -51,8 +52,10 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pierrec/lz4/v4 v4.1.21 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/rogpeppe/go-internal v1.11.0 // indirect
+	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
 	github.com/xdg-go/scram v1.1.2 // indirect
 	github.com/xdg-go/stringprep v1.0.4 // indirect
@@ -67,6 +70,7 @@ require (
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gorm.io/driver/mysql v1.4.7 // indirect
 	k8s.io/apimachinery v0.29.3 // indirect
 )
