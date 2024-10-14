@@ -26,3 +26,8 @@ func SubscribeCVEEvent() {
 	logrus.Info("subscribing to cve topic")
 	_ = kfklib.Subscribe(config.CVEConfigInstance.Kafka.Group, CVEHandle, []string{config.CVEConfigInstance.Kafka.Topic})
 }
+
+func SubscribeForumEvent() {
+	logrus.Info("subscribing to forum topic")
+	_ = kfklib.Subscribe(config.ForumConfigInstance.Kafka.Group, ForumHandle, []string{config.ForumConfigInstance.Kafka.Topic})
+}
