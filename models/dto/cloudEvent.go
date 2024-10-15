@@ -8,6 +8,7 @@ import (
 	"time"
 
 	cloudevents "github.com/cloudevents/sdk-go/v2"
+	"github.com/sirupsen/logrus"
 	"github.com/todocoder/go-stream/stream"
 
 	"github.com/opensourceways/message-push/common/postgresql"
@@ -83,8 +84,8 @@ func (event CloudEvents) Message() ([]byte, error) {
 }
 
 func (event CloudEvents) GetRecipient() []bo.RecipientPushConfig {
-	relatedPushConfigs := event.getRelatedFromDB()
-	subscribePushConfigs := event.getSubscribeFromDB()
+	relatedPushConfigs := event.GetRelatedFromDB()
+	subscribePushConfigs := event.GetSubscribeFromDB()
 	return mergeRecipient(subscribePushConfigs, relatedPushConfigs)
 }
 
@@ -96,6 +97,7 @@ func mergeRecipient(subscribe []bo.RecipientPushConfig, related []bo.RecipientPu
 	}).ToSlice()
 	for _, sub := range subs {
 		if !slices.Contains(unique, sub.RecipientId) {
+			logrus.Infof("the mail is %v, subs config is %v", sub.Mail, sub.NeedMail)
 			unique = append(unique, sub.RecipientId)
 		}
 	}
@@ -109,7 +111,7 @@ func mergeRecipient(subscribe []bo.RecipientPushConfig, related []bo.RecipientPu
 	return subs
 }
 
-func (event CloudEvents) getRelatedFromDB() []bo.RecipientPushConfig {
+func (event CloudEvents) GetRelatedFromDB() []bo.RecipientPushConfig {
 	relatedUsers := strings.Split(event.Extensions()["relatedusers"].(string), ",")
 	var subscribePushConfigs []bo.RecipientPushConfig
 	postgresql.DB().Raw(
@@ -119,7 +121,7 @@ func (event CloudEvents) getRelatedFromDB() []bo.RecipientPushConfig {
 	return subscribePushConfigs
 }
 
-func (event CloudEvents) getSubscribeFromDB() []bo.RecipientPushConfig {
+func (event CloudEvents) GetSubscribeFromDB() []bo.RecipientPushConfig {
 	relatedUsers := strings.Split(event.Extensions()["relatedusers"].(string), ",")
 	var subscribePushConfigs []bo.RecipientPushConfig
 	postgresql.DB().Raw(
