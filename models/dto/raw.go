@@ -66,6 +66,9 @@ func (flatRaw FlatRaw) ModeFilter(modeFilterJson datatypes.JSON) bool {
 	}
 	modeFilterMap := make(map[string]string)
 	_ = json.Unmarshal(modeFilterJson, &modeFilterMap)
+	if len(modeFilterMap) == 0 {
+		return true
+	}
 	validate := validator.New()
 	for k, v := range modeFilterMap {
 		err := validate.Var(flatRaw[k], v)

@@ -83,8 +83,8 @@ func (event CloudEvents) Message() ([]byte, error) {
 }
 
 func (event CloudEvents) GetRecipient() []bo.RecipientPushConfig {
-	relatedPushConfigs := event.getRelatedFromDB()
-	subscribePushConfigs := event.getSubscribeFromDB()
+	relatedPushConfigs := event.GetRelatedFromDB()
+	subscribePushConfigs := event.GetSubscribeFromDB()
 	return mergeRecipient(subscribePushConfigs, relatedPushConfigs)
 }
 
@@ -109,7 +109,7 @@ func mergeRecipient(subscribe []bo.RecipientPushConfig, related []bo.RecipientPu
 	return subs
 }
 
-func (event CloudEvents) getRelatedFromDB() []bo.RecipientPushConfig {
+func (event CloudEvents) GetRelatedFromDB() []bo.RecipientPushConfig {
 	relatedUsers := strings.Split(event.Extensions()["relatedusers"].(string), ",")
 	var subscribePushConfigs []bo.RecipientPushConfig
 	postgresql.DB().Raw(
@@ -119,7 +119,7 @@ func (event CloudEvents) getRelatedFromDB() []bo.RecipientPushConfig {
 	return subscribePushConfigs
 }
 
-func (event CloudEvents) getSubscribeFromDB() []bo.RecipientPushConfig {
+func (event CloudEvents) GetSubscribeFromDB() []bo.RecipientPushConfig {
 	relatedUsers := strings.Split(event.Extensions()["relatedusers"].(string), ",")
 	var subscribePushConfigs []bo.RecipientPushConfig
 	postgresql.DB().Raw(

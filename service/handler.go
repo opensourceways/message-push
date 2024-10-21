@@ -21,8 +21,15 @@ func GiteeHandle(payload []byte, _ map[string]string) error {
 	if msgBodyErr != nil {
 		return msgBodyErr
 	}
-	res := handle(event, config.GiteeConfigInstance.Push)
-	return res
+	err := HandleRelated(event)
+	if err != nil {
+		return err
+	}
+	err = HandleSubscribe(event, config.GiteeConfigInstance.Push)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func EurBuildHandle(payload []byte, _ map[string]string) error {
@@ -31,8 +38,15 @@ func EurBuildHandle(payload []byte, _ map[string]string) error {
 	if msgBodyErr != nil {
 		return msgBodyErr
 	}
-	res := handle(event, config.EurBuildConfigInstance.Push)
-	return res
+	err := HandleRelated(event)
+	if err != nil {
+		return err
+	}
+	err = HandleSubscribe(event, config.EurBuildConfigInstance.Push)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func OpenEulerMeetingHandle(payload []byte, _ map[string]string) error {
@@ -41,8 +55,15 @@ func OpenEulerMeetingHandle(payload []byte, _ map[string]string) error {
 	if msgBodyErr != nil {
 		return msgBodyErr
 	}
-	res := handle(event, config.MeetingConfigInstance.Push)
-	return res
+	err := HandleRelated(event)
+	if err != nil {
+		return err
+	}
+	err = HandleSubscribe(event, config.MeetingConfigInstance.Push)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func CVEHandle(payload []byte, _ map[string]string) error {
@@ -51,8 +72,15 @@ func CVEHandle(payload []byte, _ map[string]string) error {
 	if msgBodyErr != nil {
 		return msgBodyErr
 	}
-	res := handle(event, config.CVEConfigInstance.Push)
-	return res
+	err := HandleRelated(event)
+	if err != nil {
+		return err
+	}
+	err = HandleSubscribe(event, config.CVEConfigInstance.Push)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func ForumHandle(payload []byte, _ map[string]string) error {
@@ -61,14 +89,53 @@ func ForumHandle(payload []byte, _ map[string]string) error {
 	if msgBodyErr != nil {
 		return msgBodyErr
 	}
-	res := handle(event, config.ForumConfigInstance.Push)
-	return res
+	err := HandleRelated(event)
+	if err != nil {
+		return err
+	}
+	err = HandleSubscribe(event, config.CVEConfigInstance.Push)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-func handle(event dto.CloudEvents, push config.PushConfig) error {
+func HandleSubscribe(event dto.CloudEvents, push config.PushConfig) error {
 	raw := make(dto.Raw)
 	raw.FromJson(event.Data())
-	recipients := event.GetRecipient()
+	recipients := event.GetSubscribeFromDB()
+
+	if recipients == nil || len(recipients) == 0 {
+		return nil
+	}
+	logrus.SetFormatter(&logrus.JSONFormatter{
+		PrettyPrint: true, // 启用美化输出
+	})
+	flatRaw := raw.Flatten()
+	processedRecipients := make(map[string]struct{})
+
+	// 遍历接收者
+	stream.Of(recipients...).ForEach(func(item bo.RecipientPushConfig) {
+		recipientKey := item.RecipientId
+		if _, exists := processedRecipients[recipientKey]; !exists {
+			logrus.Infof("send email, %v, %v", item.NeedMail, item.Mail)
+			isFilter := flatRaw.ModeFilter(item.ModeFilter)
+			if isFilter {
+				HandleMail(event, flatRaw, item, push)
+				if item.NeedMail {
+					processedRecipients[recipientKey] = struct{}{}
+				}
+			}
+		}
+	})
+	return nil
+}
+
+func HandleRelated(event dto.CloudEvents) error {
+	raw := make(dto.Raw)
+	raw.FromJson(event.Data())
+	recipients := event.GetRelatedFromDB()
+
 	if recipients == nil || len(recipients) == 0 {
 		return nil
 	}
@@ -78,28 +145,20 @@ func handle(event dto.CloudEvents, push config.PushConfig) error {
 	logrus.Info(recipients)
 	flatRaw := raw.Flatten()
 	processedInnerRecipients := make(map[string]struct{}) // 用于追踪已处理的接收者
-	processedRecipients := make(map[string]struct{})
 
 	// 遍历接收者
 	stream.Of(recipients...).ForEach(func(item bo.RecipientPushConfig) {
 		recipientKey := item.RecipientId
 		if _, exists := processedInnerRecipients[recipientKey]; !exists {
-			handleInnerMessage(event, flatRaw, item)
+			HandleInnerMessage(event, flatRaw, item)
 			processedInnerRecipients[recipientKey] = struct{}{} // 标记为已处理
-		}
-		if _, exists := processedRecipients[recipientKey]; !exists {
-			isFilter := flatRaw.ModeFilter(item.ModeFilter)
-			if isFilter {
-				handleMessage(event, raw, flatRaw, item, push)
-				handleMail(event, flatRaw, item, push)
-				processedRecipients[recipientKey] = struct{}{}
-			}
 		}
 	})
 	return nil
 }
 
-func handleInnerMessage(event dto.CloudEvents, flatRaw dto.FlatRaw, pushConfig bo.RecipientPushConfig) {
+func HandleInnerMessage(event dto.CloudEvents, flatRaw dto.FlatRaw,
+	pushConfig bo.RecipientPushConfig) {
 	res := sendInnerMessage(event, pushConfig)
 	sendInnerMessageLog := "send inner message %s %s"
 	if res.Res == dto.Failed {
@@ -107,10 +166,11 @@ func handleInnerMessage(event dto.CloudEvents, flatRaw dto.FlatRaw, pushConfig b
 	} else {
 		logrus.Info(sendInnerMessageLog, event.ID(), "success")
 	}
-	//insertData(event, flatRaw, res)
+	insertData(event, flatRaw, res)
 }
 
-func handleMessage(event dto.CloudEvents, raw dto.Raw, flatRaw dto.FlatRaw, pushConfig bo.RecipientPushConfig, push config.PushConfig) {
+func HandleMessage(event dto.CloudEvents, raw dto.Raw, flatRaw dto.FlatRaw,
+	pushConfig bo.RecipientPushConfig, push config.PushConfig) {
 	if pushConfig.NeedMessage {
 		sendMessageLog := "send message %s %s %s"
 		res := sendHWCloudMessage(raw, pushConfig, push.MsgConfig)
@@ -119,11 +179,12 @@ func handleMessage(event dto.CloudEvents, raw dto.Raw, flatRaw dto.FlatRaw, push
 		} else {
 			logrus.Info(sendMessageLog, event.ID(), "success", pushConfig.Message)
 		}
-		//insertData(event, flatRaw, res)
+		insertData(event, flatRaw, res)
 	}
 }
 
-func handleMail(event dto.CloudEvents, flatRaw dto.FlatRaw, pushConfig bo.RecipientPushConfig, push config.PushConfig) {
+func HandleMail(event dto.CloudEvents, flatRaw dto.FlatRaw, pushConfig bo.RecipientPushConfig,
+	push config.PushConfig) {
 	if pushConfig.NeedMail {
 		sendMailLog := "send mail %s %s %s"
 		res := sendMail(event, pushConfig, push.EmailConfig)
@@ -132,11 +193,12 @@ func handleMail(event dto.CloudEvents, flatRaw dto.FlatRaw, pushConfig bo.Recipi
 		} else {
 			logrus.Infof(sendMailLog, event.ID(), "success", pushConfig.Mail)
 		}
-		//insertData(event, flatRaw, res)
+		insertData(event, flatRaw, res)
 	}
 }
 
-func sendHWCloudMessage(raw dto.Raw, recipient bo.RecipientPushConfig, messageConfig pushSdk.MsgConfig) dto.PushResult {
+func sendHWCloudMessage(raw dto.Raw, recipient bo.RecipientPushConfig,
+	messageConfig pushSdk.MsgConfig) dto.PushResult {
 	templateParas := raw.ToMessageArgs(recipient.MessageTemplate)
 	res := pushSdk.SendHWCloudMessage(messageConfig, templateParas, recipient)
 	if res.Res == dto.Failed {
