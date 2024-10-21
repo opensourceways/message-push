@@ -88,6 +88,7 @@ type Options struct {
 	GiteeConfig    string
 	MeetingConfig  string
 	CVEConfig      string
+	ForumConfig    string
 }
 
 func (o *Options) AddFlags(fs *flag.FlagSet) {
@@ -96,5 +97,5 @@ func (o *Options) AddFlags(fs *flag.FlagSet) {
 	fs.StringVar(&o.GiteeConfig, "gitee-config-file", "", "Path to gitee config file.")
 	fs.StringVar(&o.MeetingConfig, "meeting-config-file", "", "Path to meeting config file.")
 	fs.StringVar(&o.CVEConfig, "cve-config-file", "", "Path to cve config file.")
-
+	fs.StringVar(&o.CVEConfig, "forum-config-file", "", "Path to forum file.")
 }
