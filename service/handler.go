@@ -199,6 +199,35 @@ func sendMail(event dto.CloudEvents, recipient bo.RecipientPushConfig, emailConf
 		event.Extensions()["mailsummary"].(string), recipient, emailConfig)
 }
 
+func checkNil(stringifyMap map[string]string,
+	eurBuildEvent dto.CloudEvents) {
+	// 创建一个用于存储 nil 值的切片
+	var nilFields []string
+
+	if stringifyMap == nil {
+		nilFields = append(nilFields, "Event Data")
+	}
+	if eurBuildEvent.Extensions()["sourceurl"] == nil {
+		nilFields = append(nilFields, "Source URL")
+	}
+	if eurBuildEvent.Extensions()["user"] == nil {
+		nilFields = append(nilFields, "User")
+	}
+	if eurBuildEvent.Extensions()["title"] == nil {
+		nilFields = append(nilFields, "Title")
+	}
+	if eurBuildEvent.Extensions()["summary"] == nil {
+		nilFields = append(nilFields, "Summary")
+	}
+
+	// 打印所有值为 nil 的字段
+	if len(nilFields) > 0 {
+		logrus.Infof("Nil fields: %v", nilFields)
+	} else {
+		logrus.Infof("No nil fields found.")
+	}
+}
+
 func insertData(eurBuildEvent dto.CloudEvents, flatRaw dto.FlatRaw, result dto.PushResult) {
 	stringifyMap := flatRaw.StringifyMap()
 	insert := `insert into message_push_record (recipient_id, time_uuid, created_at, event_data, event_data_content_type,
@@ -207,26 +236,7 @@ func insertData(eurBuildEvent dto.CloudEvents, flatRaw dto.FlatRaw, result dto.P
                                  remark, title, summary)
 values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);
 `
-	logrus.Infof(result.RecipientId,
-		gocql.TimeUUID(),
-		time.Now(),
-		stringifyMap,
-		eurBuildEvent.DataContentType(),
-		eurBuildEvent.DataSchema(),
-		eurBuildEvent.ID(),
-		eurBuildEvent.Source(),
-		eurBuildEvent.Extensions()["sourceurl"].(string),
-		eurBuildEvent.SpecVersion(),
-		eurBuildEvent.Time(),
-		eurBuildEvent.Type(),
-		eurBuildEvent.Extensions()["user"].(string),
-		result.PushAddress,
-		result.Res,
-		result.Time,
-		result.PushType,
-		result.Remark,
-		eurBuildEvent.Extensions()["title"].(string),
-		eurBuildEvent.Extensions()["summary"].(string))
+	checkNil(stringifyMap, eurBuildEvent)
 	err := cassandra.Session().
 		Query(
 			insert,
