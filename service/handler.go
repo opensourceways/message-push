@@ -207,6 +207,26 @@ func insertData(eurBuildEvent dto.CloudEvents, flatRaw dto.FlatRaw, result dto.P
                                  remark, title, summary)
 values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);
 `
+	logrus.Infof(result.RecipientId,
+		gocql.TimeUUID(),
+		time.Now(),
+		stringifyMap,
+		eurBuildEvent.DataContentType(),
+		eurBuildEvent.DataSchema(),
+		eurBuildEvent.ID(),
+		eurBuildEvent.Source(),
+		eurBuildEvent.Extensions()["sourceurl"].(string),
+		eurBuildEvent.SpecVersion(),
+		eurBuildEvent.Time(),
+		eurBuildEvent.Type(),
+		eurBuildEvent.Extensions()["user"].(string),
+		result.PushAddress,
+		result.Res,
+		result.Time,
+		result.PushType,
+		result.Remark,
+		eurBuildEvent.Extensions()["title"].(string),
+		eurBuildEvent.Extensions()["summary"].(string))
 	err := cassandra.Session().
 		Query(
 			insert,
