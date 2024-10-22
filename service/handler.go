@@ -149,7 +149,7 @@ func HandleInnerMessage(event dto.CloudEvents, flatRaw dto.FlatRaw,
 	} else {
 		logrus.Info(sendInnerMessageLog, event.ID(), "success")
 	}
-	//insertData(event, flatRaw, res)
+	insertData(event, flatRaw, res)
 }
 
 func HandleMessage(event dto.CloudEvents, raw dto.Raw, flatRaw dto.FlatRaw,
@@ -162,7 +162,7 @@ func HandleMessage(event dto.CloudEvents, raw dto.Raw, flatRaw dto.FlatRaw,
 		} else {
 			logrus.Info(sendMessageLog, event.ID(), "success", pushConfig.Message)
 		}
-		//insertData(event, flatRaw, res)
+		insertData(event, flatRaw, res)
 	}
 }
 
@@ -176,7 +176,7 @@ func HandleMail(event dto.CloudEvents, flatRaw dto.FlatRaw, pushConfig bo.Recipi
 		} else {
 			logrus.Infof(sendMailLog, event.ID(), "success", pushConfig.Mail)
 		}
-		//insertData(event, flatRaw, res)
+		insertData(event, flatRaw, res)
 	}
 }
 
@@ -199,6 +199,35 @@ func sendMail(event dto.CloudEvents, recipient bo.RecipientPushConfig, emailConf
 		event.Extensions()["mailsummary"].(string), recipient, emailConfig)
 }
 
+func checkNil(stringifyMap map[string]string,
+	eurBuildEvent dto.CloudEvents) {
+	// 创建一个用于存储 nil 值的切片
+	var nilFields []string
+
+	if stringifyMap == nil {
+		nilFields = append(nilFields, "Event Data")
+	}
+	if eurBuildEvent.Extensions()["sourceurl"] == nil {
+		nilFields = append(nilFields, "Source URL")
+	}
+	if eurBuildEvent.Extensions()["user"] == nil {
+		nilFields = append(nilFields, "User")
+	}
+	if eurBuildEvent.Extensions()["title"] == nil {
+		nilFields = append(nilFields, "Title")
+	}
+	if eurBuildEvent.Extensions()["summary"] == nil {
+		nilFields = append(nilFields, "Summary")
+	}
+
+	// 打印所有值为 nil 的字段
+	if len(nilFields) > 0 {
+		logrus.Infof("Nil fields: %v", nilFields)
+	} else {
+		logrus.Infof("No nil fields found.")
+	}
+}
+
 func insertData(eurBuildEvent dto.CloudEvents, flatRaw dto.FlatRaw, result dto.PushResult) {
 	stringifyMap := flatRaw.StringifyMap()
 	insert := `insert into message_push_record (recipient_id, time_uuid, created_at, event_data, event_data_content_type,
@@ -207,6 +236,7 @@ func insertData(eurBuildEvent dto.CloudEvents, flatRaw dto.FlatRaw, result dto.P
                                  remark, title, summary)
 values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);
 `
+	checkNil(stringifyMap, eurBuildEvent)
 	err := cassandra.Session().
 		Query(
 			insert,
