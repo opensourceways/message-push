@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/opensourceways/message-push/common/cassandra"
 	"github.com/opensourceways/server-common-lib/logrusutil"
 	"github.com/sirupsen/logrus"
 
@@ -31,10 +32,10 @@ func main() {
 		return
 	}
 
-	//if err := cassandra.Init(&cfg.Cassandra); err != nil {
-	//	logrus.Errorf("init cassandra failed, err:%s", err.Error())
-	//	return
-	//}
+	if err := cassandra.Init(&cfg.Cassandra); err != nil {
+		logrus.Errorf("init cassandra failed, err:%s", err.Error())
+		return
+	}
 	go func() {
 		config.InitEurBuildConfig(o.EurBuildConfig)
 		service.SubscribeEurEvent()
@@ -87,6 +88,7 @@ type Options struct {
 	GiteeConfig    string
 	MeetingConfig  string
 	CVEConfig      string
+	ForumConfig    string
 }
 
 func (o *Options) AddFlags(fs *flag.FlagSet) {
@@ -95,5 +97,5 @@ func (o *Options) AddFlags(fs *flag.FlagSet) {
 	fs.StringVar(&o.GiteeConfig, "gitee-config-file", "", "Path to gitee config file.")
 	fs.StringVar(&o.MeetingConfig, "meeting-config-file", "", "Path to meeting config file.")
 	fs.StringVar(&o.CVEConfig, "cve-config-file", "", "Path to cve config file.")
-
+	fs.StringVar(&o.ForumConfig, "forum-config-file", "", "Path to forum file.")
 }
