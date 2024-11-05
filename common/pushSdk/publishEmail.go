@@ -8,7 +8,6 @@ import (
 
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/extension"
-	"golang.org/x/xerrors"
 	"gopkg.in/mail.v2"
 
 	"github.com/opensourceways/message-push/models/bo"
@@ -64,7 +63,7 @@ func sendSSLEmail(receiver, subject, body string, config EmailConfig) error {
 	// 设置邮件内容
 	htmlBody, err := mdToHtml(body)
 	if err != nil {
-		return xerrors.Errorf("convert md to html failed, err:%v", err)
+		return err
 	}
 	m.SetBody("text/html", htmlBody)
 
