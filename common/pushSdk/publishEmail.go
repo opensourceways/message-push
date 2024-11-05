@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/sirupsen/logrus"
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/extension"
 	"github.com/yuin/goldmark/renderer/html"
@@ -59,15 +58,11 @@ func decodeUnicode(input string) (string, error) {
 
 func mdToHtml(body string) (string, error) {
 	// 创建一个缓冲区以写入转换后的 HTML
-	decodeBody, err := decodeUnicode(body)
-	if err != nil {
-		return "", err
-	}
 	var buf bytes.Buffer
 	md := goldmark.New(
 		goldmark.WithExtensions(extension.GFM, extension.Footnote),
 		goldmark.WithRendererOptions(html.WithUnsafe()))
-	err = md.Convert([]byte(decodeBody), &buf)
+	err := md.Convert([]byte(body), &buf)
 	if err != nil {
 		return "", err
 	}
@@ -90,7 +85,6 @@ func sendSSLEmail(receiver, subject, body string, config EmailConfig) error {
 	if err != nil {
 		return err
 	}
-	logrus.Infof("the data is %v\n, the html is %v", body, htmlBody)
 	m.SetBody("text/html", htmlBody)
 
 	d := mail.NewDialer(config.SMTPHost, config.SMTPPort, config.SMTPUsername, config.SMTPPassword)
