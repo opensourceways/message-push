@@ -8,6 +8,7 @@ import (
 
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/extension"
+	"github.com/yuin/goldmark/renderer/html"
 	"gopkg.in/mail.v2"
 
 	"github.com/opensourceways/message-push/models/bo"
@@ -41,7 +42,8 @@ func mdToHtml(body string) (string, error) {
 	// 创建一个缓冲区以写入转换后的 HTML
 	var buf bytes.Buffer
 	md := goldmark.New(
-		goldmark.WithExtensions(extension.GFM, extension.Footnote))
+		goldmark.WithExtensions(extension.GFM, extension.Footnote),
+		goldmark.WithRendererOptions(html.WithUnsafe()))
 	err := md.Convert([]byte(body), &buf)
 	if err != nil {
 		return "", err
