@@ -4,13 +4,10 @@ import (
 	"bytes"
 	"crypto/tls"
 	"log"
-	"regexp"
-	"strconv"
 	"time"
 
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/extension"
-	"github.com/yuin/goldmark/renderer/html"
 	"gopkg.in/mail.v2"
 
 	"github.com/opensourceways/message-push/models/bo"
@@ -40,28 +37,11 @@ func SendEmail(title string, summary string, recipient bo.RecipientPushConfig, c
 	}
 }
 
-func decodeUnicode(input string) (string, error) {
-	// 使用正则表达式匹配 Unicode 转义字符
-	re := regexp.MustCompile(`\\u([0-9a-fA-F]{4})`)
-	result := re.ReplaceAllStringFunc(input, func(match string) string {
-		// 提取十六进制值并转换为字符
-		hex := match[2:] // 获取 "uXXXX" 中的 "XXXX"
-		codePoint, err := strconv.ParseInt(hex, 16, 32)
-		if err != nil {
-			return match // 如果解析失败，返回原始匹配
-		}
-		return string(rune(codePoint))
-	})
-
-	return result, nil
-}
-
 func mdToHtml(body string) (string, error) {
 	// 创建一个缓冲区以写入转换后的 HTML
 	var buf bytes.Buffer
 	md := goldmark.New(
-		goldmark.WithExtensions(extension.GFM, extension.Footnote),
-		goldmark.WithRendererOptions(html.WithUnsafe()))
+		goldmark.WithExtensions(extension.GFM, extension.Footnote))
 	err := md.Convert([]byte(body), &buf)
 	if err != nil {
 		return "", err
