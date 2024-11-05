@@ -6,6 +6,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/sirupsen/logrus"
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/extension"
 	"github.com/yuin/goldmark/renderer/html"
@@ -67,6 +68,7 @@ func sendSSLEmail(receiver, subject, body string, config EmailConfig) error {
 	if err != nil {
 		return err
 	}
+	logrus.Infof("the data is %v\n, the html is %v", body, htmlBody)
 	m.SetBody("text/html", htmlBody)
 
 	d := mail.NewDialer(config.SMTPHost, config.SMTPPort, config.SMTPUsername, config.SMTPPassword)
