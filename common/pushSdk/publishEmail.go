@@ -1,10 +1,14 @@
 package pushSdk
 
 import (
+	"bytes"
 	"crypto/tls"
 	"log"
 	"time"
 
+	"github.com/yuin/goldmark"
+	"github.com/yuin/goldmark/extension"
+	"github.com/yuin/goldmark/renderer/html"
 	"gopkg.in/mail.v2"
 
 	"github.com/opensourceways/message-push/models/bo"
@@ -34,7 +38,22 @@ func SendEmail(title string, summary string, recipient bo.RecipientPushConfig, c
 	}
 }
 
-func sendSSLEmail(receiver, subject, htmlBody string, config EmailConfig) error {
+func mdToHtml(body string) (string, error) {
+	// 创建一个缓冲区以写入转换后的 HTML
+	var buf bytes.Buffer
+	md := goldmark.New(
+		goldmark.WithExtensions(extension.GFM, extension.Footnote),
+		goldmark.WithRendererOptions(html.WithUnsafe()))
+	err := md.Convert([]byte(body), &buf)
+	if err != nil {
+		return "", err
+	}
+
+	// 返回转换后的 HTML 字符串
+	return buf.String(), nil
+}
+
+func sendSSLEmail(receiver, subject, body string, config EmailConfig) error {
 	m := mail.NewMessage()
 
 	m.SetAddressHeader("From", config.SMTPUsername, config.SMTPSender)
@@ -44,6 +63,10 @@ func sendSSLEmail(receiver, subject, htmlBody string, config EmailConfig) error 
 	// 设置邮件主题
 	m.SetHeader("Subject", subject)
 	// 设置邮件内容
+	htmlBody, err := mdToHtml(body)
+	if err != nil {
+		return err
+	}
 	m.SetBody("text/html", htmlBody)
 
 	d := mail.NewDialer(config.SMTPHost, config.SMTPPort, config.SMTPUsername, config.SMTPPassword)
