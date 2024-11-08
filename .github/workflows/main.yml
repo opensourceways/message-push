@@ -9,4 +9,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: RUN CodeArts Pipeline
-        run: ./codearts_check.sh $GITHUB_HEAD_REF ${{ github.event.pull_request.number }}  ${{ secrets.CODEARTS_PASSWORD }} ${{ secrets.CODEARTS_PIPELINE }}
+        run: .github/workflows/script/codearts_check.sh $GITHUB_HEAD_REF ${{ github.event.pull_request.number }}  ${{ secrets.CODEARTS_PASSWORD }} ${{ secrets.CODEARTS_PIPELINE }}
