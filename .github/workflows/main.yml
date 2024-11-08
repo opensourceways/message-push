@@ -15,4 +15,5 @@ jobs:
           echo "Repository: ${{ github.repository }}"
           echo "Commit SHA: ${{ github.sha }}"
           echo "Actor: ${{ github.actor }}"
-
+          echo "Source branch: $GITHUB_HEAD_REF"
+          echo "Target branch: $GITHUB_BASE_REF"
