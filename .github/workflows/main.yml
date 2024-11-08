@@ -16,5 +16,5 @@ jobs:
               echo "BRANCH_NAME: $GITHUB_BASE_REF" >> $GITHUB_ENV
               echo "CODEARTS_PASSWORD: ${{ secrets.CODEARTS_PASSWORD }}" >> $GITHUB_ENV
               echo "CODEARTS_PIPELINE: ${{ secrets.CODEARTS_PIPELINE }}" >> $GITHUB_ENV
-      - name: Print GitHub context info
-        run: ./.github/script/codearts_check.sh "$BRANCH_NAME" "$PR_Number"  "CODEARTS_PASSWORD" "CODEARTS_PIPELINE"
+      - name: RUN CodeArts Pipeline
+        run: ./codearts_check.sh "$BRANCH_NAME" "$PR_Number"  "CODEARTS_PASSWORD" "CODEARTS_PIPELINE"
