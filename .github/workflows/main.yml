@@ -8,8 +8,5 @@ jobs:
   example-job:
     runs-on: ubuntu-latest
     steps:
-      - name: Get current branch name
-        id: get_param
-              - name: Print GitHub context info
       - name: RUN CodeArts Pipeline
         run: ./codearts_check.sh $GITHUB_HEAD_REF ${{ github.event.pull_request.number }}  ${{ secrets.CODEARTS_PASSWORD }} ${{ secrets.CODEARTS_PIPELINE }}
