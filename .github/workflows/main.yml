@@ -11,5 +11,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
+      - name: Make script executable
+        run: chmod +x ./.github/script/codearts_check.sh
+
       - name: RUN CodeArts Pipeline
         run: ./.github/script/codearts_check.sh $GITHUB_HEAD_REF ${{ github.event.pull_request.number }}  ${{ secrets.CODEARTS_PASSWORD }} ${{ secrets.CODEARTS_PIPELINE }}
