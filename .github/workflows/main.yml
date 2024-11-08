@@ -8,5 +8,8 @@ jobs:
   example-job:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
       - name: RUN CodeArts Pipeline
         run: ./.github/script/codearts_check.sh $GITHUB_HEAD_REF ${{ github.event.pull_request.number }}  ${{ secrets.CODEARTS_PASSWORD }} ${{ secrets.CODEARTS_PIPELINE }}
