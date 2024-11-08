@@ -11,10 +11,5 @@ jobs:
       - name: Get current branch name
         id: get_param
               - name: Print GitHub context info
-        run: |
-              echo "PR_Number: ${{ github.event.pull_request.number }}" >> $GITHUB_ENV
-              echo "BRANCH_NAME: $GITHUB_BASE_REF" >> $GITHUB_ENV
-              echo "CODEARTS_PASSWORD: ${{ secrets.CODEARTS_PASSWORD }}" >> $GITHUB_ENV
-              echo "CODEARTS_PIPELINE: ${{ secrets.CODEARTS_PIPELINE }}" >> $GITHUB_ENV
       - name: RUN CodeArts Pipeline
-        run: ./codearts_check.sh "$BRANCH_NAME" "$PR_Number"  "$CODEARTS_PASSWORD" "$CODEARTS_PIPELINE"
+        run: ./codearts_check.sh $GITHUB_HEAD_REF ${{ github.event.pull_request.number }}  ${{ secrets.CODEARTS_PASSWORD }} ${{ secrets.CODEARTS_PIPELINE }}
