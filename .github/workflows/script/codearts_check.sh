@@ -1,4 +1,3 @@
-
 IAM_DATA=$(cat <<EOF
 {
     "auth": {
@@ -12,7 +11,7 @@ IAM_DATA=$(cat <<EOF
                         "name": "freesky-edward"
                     },
                     "name": "codearts_test",
-                    "password": "$CODEARTS_PASSWORD"
+                    "password": "$3"
                 }
             }
         },
@@ -47,7 +46,7 @@ DATA=$(cat <<EOF
       "build_params" : {
         "build_type" : "branch",
         "event_type" : "Manual",
-        "target_branch" : "$BRANCH_NAME"
+        "target_branch" : "$1"
       }
     }
   } ],
@@ -63,14 +62,14 @@ DATA=$(cat <<EOF
   ,
   {
     "name" : "pr_id",
-    "value" : "$PR_ID"
+    "value" : "$2"
   }
   ]
 }
 EOF
 )
 
-CODEARTS_PIPELINE="https://cloudpipeline-ext.cn-north-4.myhuaweicloud.com/v5/3a76c1785dda4b13a399937d1978f240/api/pipelines/ea5489fc52984d36a1b33fc6378ddb85/run"
+CODEARTS_PIPELINE="$4"
 
 curl --location "$CODEARTS_PIPELINE" \
 --header "X-Auth-Token:$token" \
