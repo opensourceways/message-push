@@ -83,6 +83,23 @@ func CVEHandle(payload []byte, _ map[string]string) error {
 	return nil
 }
 
+func ForumHandle(payload []byte, _ map[string]string) error {
+	event := dto.NewCloudEvents()
+	msgBodyErr := json.Unmarshal(payload, &event)
+	if msgBodyErr != nil {
+		return msgBodyErr
+	}
+	err := HandleRelated(event)
+	if err != nil {
+		return err
+	}
+	err = HandleSubscribe(event, config.CVEConfigInstance.Push)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func HandleSubscribe(event dto.CloudEvents, push config.PushConfig) error {
 	raw := make(dto.Raw)
 	raw.FromJson(event.Data())

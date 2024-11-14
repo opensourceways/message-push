@@ -52,6 +52,10 @@ func main() {
 		config.InitCVEConfig(o.CVEConfig)
 		service.SubscribeCVEEvent()
 	}()
+	go func() {
+		config.InitForumConfig(o.ForumConfig)
+		service.SubscribeForumEvent()
+	}()
 	select {}
 }
 
