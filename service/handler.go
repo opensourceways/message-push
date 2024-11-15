@@ -89,6 +89,7 @@ func ForumHandle(payload []byte, _ map[string]string) error {
 	if msgBodyErr != nil {
 		return msgBodyErr
 	}
+	logrus.Infof("receive forum message")
 	err := HandleRelated(event)
 	if err != nil {
 		return err
