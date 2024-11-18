@@ -1,4 +1,4 @@
-name: PR Event Script Trigger
+name: Gate Check
 
 on:
   pull_request:
