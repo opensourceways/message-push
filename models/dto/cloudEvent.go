@@ -121,6 +121,26 @@ func (event CloudEvents) GetRelatedFromDB() []bo.RecipientPushConfig {
 	return subscribePushConfigs
 }
 
+func (event CloudEvents) GetTodoFromDB() []bo.RecipientPushConfig {
+	todoUsers := strings.Split(event.Extensions()["todousers"].(string), ",")
+	var todoPushConfigs []bo.RecipientPushConfig
+	postgresql.DB().Raw(
+		related_sql,
+		todoUsers, todoUsers, todoUsers, todoUsers, todoUsers,
+	).Scan(&todoPushConfigs)
+	return todoPushConfigs
+}
+
+func (event CloudEvents) GetFollowFromDB() []bo.RecipientPushConfig {
+	followUsers := strings.Split(event.Extensions()["followUsers"].(string), ",")
+	var followPushConfigs []bo.RecipientPushConfig
+	postgresql.DB().Raw(
+		related_sql,
+		followUsers, followUsers, followUsers, followUsers, followUsers,
+	).Scan(&followPushConfigs)
+	return followPushConfigs
+}
+
 func (event CloudEvents) GetSubscribeFromDB() []bo.RecipientPushConfig {
 	relatedUsers := strings.Split(event.Extensions()["relatedusers"].(string), ",")
 	var subscribePushConfigs []bo.RecipientPushConfig
@@ -163,4 +183,38 @@ func (event CloudEvents) SendInnerMessage(recipient bo.RecipientPushConfig) Push
 		IsSpecial:   false,
 	}
 	return SaveDb(innerMessageDO)
+}
+
+func SaveTodoDb(m do.TodoMessageDO) PushResult {
+	res := postgresql.DB().Save(&m)
+	if res.Error != nil {
+		return PushResult{
+			Res:         Failed,
+			Time:        time.Now(),
+			Remark:      res.Error.Error(),
+			RecipientId: m.RecipientId,
+			PushType:    "todo message",
+			PushAddress: "",
+		}
+	} else {
+		return PushResult{
+			Res:         Succeed,
+			Time:        time.Now(),
+			Remark:      "succeed",
+			RecipientId: m.RecipientId,
+			PushType:    "todo message",
+			PushAddress: "",
+		}
+	}
+}
+
+func (event CloudEvents) SendTodoMessage(recipient bo.RecipientPushConfig) PushResult {
+	todoMessageDO := do.TodoMessageDO{
+		EventId:     event.ID(),
+		Source:      event.Source(),
+		RecipientId: recipient.RecipientId,
+		IsRead:      false,
+		IsDone:      event.Extensions()["isDone"].(bool),
+	}
+	return SaveTodoDb(todoMessageDO)
 }

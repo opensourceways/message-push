@@ -21,11 +21,7 @@ func GiteeHandle(payload []byte, _ map[string]string) error {
 	if msgBodyErr != nil {
 		return msgBodyErr
 	}
-	err := HandleRelated(event)
-	if err != nil {
-		return err
-	}
-	err = HandleSubscribe(event, config.GiteeConfigInstance.Push)
+	err := HandleAll(event, config.GiteeConfigInstance.Push)
 	if err != nil {
 		return err
 	}
@@ -38,11 +34,7 @@ func EurBuildHandle(payload []byte, _ map[string]string) error {
 	if msgBodyErr != nil {
 		return msgBodyErr
 	}
-	err := HandleRelated(event)
-	if err != nil {
-		return err
-	}
-	err = HandleSubscribe(event, config.EurBuildConfigInstance.Push)
+	err := HandleAll(event, config.EurBuildConfigInstance.Push)
 	if err != nil {
 		return err
 	}
@@ -55,11 +47,7 @@ func OpenEulerMeetingHandle(payload []byte, _ map[string]string) error {
 	if msgBodyErr != nil {
 		return msgBodyErr
 	}
-	err := HandleRelated(event)
-	if err != nil {
-		return err
-	}
-	err = HandleSubscribe(event, config.MeetingConfigInstance.Push)
+	err := HandleAll(event, config.MeetingConfigInstance.Push)
 	if err != nil {
 		return err
 	}
@@ -72,11 +60,7 @@ func CVEHandle(payload []byte, _ map[string]string) error {
 	if msgBodyErr != nil {
 		return msgBodyErr
 	}
-	err := HandleRelated(event)
-	if err != nil {
-		return err
-	}
-	err = HandleSubscribe(event, config.CVEConfigInstance.Push)
+	err := HandleAll(event, config.CVEConfigInstance.Push)
 	if err != nil {
 		return err
 	}
@@ -89,11 +73,27 @@ func ForumHandle(payload []byte, _ map[string]string) error {
 	if msgBodyErr != nil {
 		return msgBodyErr
 	}
+	err := HandleAll(event, config.ForumConfigInstance.Push)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func HandleAll(event dto.CloudEvents, push config.PushConfig) error {
 	err := HandleRelated(event)
 	if err != nil {
 		return err
 	}
-	err = HandleSubscribe(event, config.CVEConfigInstance.Push)
+	err = HandleSubscribe(event, push)
+	if err != nil {
+		return err
+	}
+	err = HandleTodo(event)
+	if err != nil {
+		return err
+	}
+	err = HandleFollow(event)
 	if err != nil {
 		return err
 	}
@@ -157,6 +157,31 @@ func HandleRelated(event dto.CloudEvents) error {
 	return nil
 }
 
+func HandleTodo(event dto.CloudEvents) error {
+	raw := make(dto.Raw)
+	raw.FromJson(event.Data())
+	recipients := event.GetTodoFromDB()
+	if recipients == nil || len(recipients) == 0 {
+		return nil
+	}
+	flatRaw := raw.Flatten()
+	processedInnerRecipients := make(map[string]struct{}) // 用于追踪已处理的接收者
+
+	// 遍历接收者
+	stream.Of(recipients...).ForEach(func(item bo.RecipientPushConfig) {
+		recipientKey := item.RecipientId
+		if _, exists := processedInnerRecipients[recipientKey]; !exists {
+			HandleTodoMessage(event, flatRaw, item)
+			processedInnerRecipients[recipientKey] = struct{}{} // 标记为已处理
+		}
+	})
+	return nil
+}
+
+func HandleFollow(event dto.CloudEvents) error {
+	return nil
+}
+
 func HandleInnerMessage(event dto.CloudEvents, flatRaw dto.FlatRaw,
 	pushConfig bo.RecipientPushConfig) {
 	res := sendInnerMessage(event, pushConfig)
@@ -165,6 +190,18 @@ func HandleInnerMessage(event dto.CloudEvents, flatRaw dto.FlatRaw,
 		logrus.Info(sendInnerMessageLog, event.ID(), "failed")
 	} else {
 		logrus.Info(sendInnerMessageLog, event.ID(), "success")
+	}
+	insertData(event, flatRaw, res)
+}
+
+func HandleTodoMessage(event dto.CloudEvents, flatRaw dto.FlatRaw,
+	pushConfig bo.RecipientPushConfig) {
+	res := sendTodoMessage(event, pushConfig)
+	sendTodoMessageLog := "send inner message %s %s"
+	if res.Res == dto.Failed {
+		logrus.Info(sendTodoMessageLog, event.ID(), "failed")
+	} else {
+		logrus.Info(sendTodoMessageLog, event.ID(), "success")
 	}
 	insertData(event, flatRaw, res)
 }
@@ -209,6 +246,10 @@ func sendHWCloudMessage(raw dto.Raw, recipient bo.RecipientPushConfig,
 
 func sendInnerMessage(event dto.CloudEvents, recipient bo.RecipientPushConfig) dto.PushResult {
 	return event.SendInnerMessage(recipient)
+}
+
+func sendTodoMessage(event dto.CloudEvents, recipient bo.RecipientPushConfig) dto.PushResult {
+	return event.SendTodoMessage(recipient)
 }
 
 func sendMail(event dto.CloudEvents, recipient bo.RecipientPushConfig, emailConfig pushSdk.EmailConfig) dto.PushResult {
