@@ -43,7 +43,7 @@ DATA=$(cat <<EOF
       "git_type" : "github",
       "default_branch" : "feture_experence",
       "git_url" : "https://github.com/opensourceways/message-push.git",
-      "endpoint_id" : "github_message-push",
+      "endpoint_id" : "a00c8423f08b4f2fb68c72bd739d4f48",
       "build_params" : {
         "build_type" : "branch",
         "event_type" : "Manual",
