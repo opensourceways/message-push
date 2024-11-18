@@ -2,7 +2,7 @@ name: gate check
 
 on:
   pull_request:
-    types: [labeled, opened, reopened, edited]
+    types: [ labeled,unlabeled,unlabeled, opened, reopened, edited ]
 
 jobs:
   check-label:
