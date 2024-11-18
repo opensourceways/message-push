@@ -5,15 +5,51 @@ on:
     types: [ labeled,unlabeled,unlabeled, opened, reopened, edited ]
 
 jobs:
-  check-label:
+  check-and-remove-label:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Check PR Labels
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const requiredLabel = 'gate_check_pass'; // 替换为你的标签名称
-            const labels = context.payload.pull_request.labels.map(label => label.name);
-            if (!labels.includes(requiredLabel)) {
-              throw new Error(`PR 必须包含标签: ${requiredLabel}`);
-            }
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Get PR label and check
+        env:
+          GITHUB_TOKEN: ${{ secrets.OWNER_TOKEN }}
+        run: |
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          REPO_OWNER=${{ github.repository_owner }}
+          REPO_NAME=${{ github.event.repository.name }}
+          LABEL_TO_CHECK="gate_check_pass"   # 指定的标签
+          EXPECTED_USER="shishupei"           # 指定的用户
+
+          # 获取PR的标签信息
+          LABELS=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+            "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/issues/$PR_NUMBER/labels")
+
+          # 检查是否包含指定标签
+          if echo "$LABELS" | jq -e ".[] | select(.name == \"$LABEL_TO_CHECK\")" > /dev/null; then
+            echo "PR has the correct label: $LABEL_TO_CHECK"
+          else
+            echo "PR does not have the required label: $LABEL_TO_CHECK"
+            exit 1
+          fi
+
+          # 获取添加标签的用户
+          EVENTS=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+            "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/issues/$PR_NUMBER/timeline")
+
+          ADDED_BY_USER=$(echo "$EVENTS" | jq -r \
+            ".[] | select(.event == \"labeled\") | select(.label.name == \"$LABEL_TO_CHECK\") | .actor.login")
+
+          # 检查标签是否由指定用户添加
+          if [ "$ADDED_BY_USER" == "$EXPECTED_USER" ]; then
+            echo "Label '$LABEL_TO_CHECK' was added by $EXPECTED_USER."
+          else
+            echo "Label '$LABEL_TO_CHECK' was not added by $EXPECTED_USER (it was added by $ADDED_BY_USER)."
+            # 删除标签
+            curl -X DELETE \
+              -H "Authorization: Bearer $GITHUB_TOKEN" \
+              "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/issues/$PR_NUMBER/labels/$LABEL_TO_CHECK"
+            echo "Label '$LABEL_TO_CHECK' has been removed."
+            exit 1
+          fi
