@@ -32,6 +32,8 @@ func main() {
 		return
 	}
 
+	fmt.Println("action")
+
 	if err := cassandra.Init(&cfg.Cassandra); err != nil {
 		logrus.Errorf("init cassandra failed, err:%s", err.Error())
 		return
