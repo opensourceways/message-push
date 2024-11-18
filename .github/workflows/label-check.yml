@@ -1,4 +1,4 @@
-name: gate check
+name: Label Check
 
 on:
   pull_request:
