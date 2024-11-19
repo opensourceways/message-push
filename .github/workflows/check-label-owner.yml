@@ -3,7 +3,7 @@ name: Check PR Label Owner
 on:
   pull_request:
     types:
-      - labeled  # 触发条件：PR 被添加标签时
+      - labeled  # 当 PR 被添加标签时触发
 
 permissions:
   pull-requests: write  # 允许修改 PR 标签
@@ -20,10 +20,15 @@ jobs:
           LABEL_NAME: "gate_check_pass"  # 替换为需要检查的标签名称
           AUTHORIZED_USER: "shishupei"  # 替换为被授权添加标签的用户
         run: |
-          # 获取 PR 的事件历史记录
+          # 提取仓库信息
+          REPO_OWNER="${{ github.repository_owner }}"
+          REPO_NAME="${{ github.event.repository.name }}"
+          ISSUE_NUMBER="${{ github.event.pull_request.number }}"
+          
+          # 获取 PR 的事件历史
           EVENTS=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
                         -H "Accept: application/vnd.github+json" \
-                        "${{ github.event.pull_request.url }}/events")
+                        "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/issues/$ISSUE_NUMBER/events")
           
           # 调试输出返回的数据
           echo "Events fetched: $EVENTS"
@@ -35,7 +40,7 @@ jobs:
           # 如果没有找到标签事件，打印错误并退出
           if [[ -z "$LABEL_ADDER" ]]; then
             echo "No labeled event found for the label '$LABEL_NAME'. Exiting."
-            exit 0
+            exit 1
           fi
           
           # 检查添加者是否为授权用户
@@ -45,7 +50,7 @@ jobs:
             # 删除标签
             curl -s -X DELETE -H "Authorization: Bearer $GITHUB_TOKEN" \
                               -H "Accept: application/vnd.github+json" \
-                              "${{ github.event.pull_request.url }}/labels/$LABEL_NAME"
+                              "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/issues/$ISSUE_NUMBER/labels/$LABEL_NAME"
           else
             echo "Label '$LABEL_NAME' was added by the authorized user '$AUTHORIZED_USER'. No action needed."
           fi
