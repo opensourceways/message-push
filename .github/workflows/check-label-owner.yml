@@ -27,13 +27,13 @@ jobs:
                fi
           
           # 检查最近的标签操作者是否为授权用户
-               if [[ "LABEL_USER" != "$AUTHORIZED_USER" ]]; then
-               echo "Label '$LABEL_NAME' was added by 'LABEL_USER', not '$AUTHORIZED_USER'. Removing it."
+               if [[ "$LABEL_USER" != "$AUTHORIZED_USER" ]]; then
+               echo "Label '$LABEL_NAME' was added by '$LABEL_USER', not '$AUTHORIZED_USER'. Removing it."
           
           # 删除标签
                curl -s -X DELETE -H "Authorization: Bearer $GITHUB_TOKEN" \
                  -H "Accept: application/vnd.github+json" \
                  "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/issues/$PR_NUMBER/labels/$TARGET_LABEL"
                else
-               echo "Label '$TARGET_LABEL' was added by the authorized bot '$AUTHORIZED_USER'. No action needed."
+               echo "Label '$TARGET_LABEL' was added by the authorized user '$AUTHORIZED_USER'. No action needed."
                fi
