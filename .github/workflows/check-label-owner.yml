@@ -18,7 +18,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.OWNER_TOKEN }}
           LABEL_NAME: "gate_check_pass"  # 替换为需要检查的标签名称
-          AUTHORIZED_USER: "shishupei"  # 替换为被授权添加标签的用户
+          AUTHORIZED_USER: "ssss"  # 替换为被授权添加标签的用户
         run: |
           # 提取仓库信息
           REPO_OWNER="${{ github.repository_owner }}"
