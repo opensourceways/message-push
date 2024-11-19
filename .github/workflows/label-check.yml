@@ -2,35 +2,9 @@ name: PR Label Check
 
 on:
   pull_request:
-    types: [labeled,unlabeled opened, reopened, edited]
+    types: [labeled,unlabeled, opened, reopened, edited]
 
 jobs:
-  check-label-owner:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Set up GitHub CLI
-        run: |
-          sudo apt-get install -y gh
-          echo "${{ secrets.OWNER_TOKEN }}" | gh auth login --with-token
-
-      - name: Check if label was added by authorized user
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          LABEL_NAME: "gate-check-pass"  # 替换为你想检查的标签名称
-          AUTHORIZED_USER: "shishupei"  # 替换为被授权的用户名
-        run: |
-          # 获取最近添加的标签事件
-          LABEL_ADDER=$(gh api repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/events \
-            | jq -r '.[] | select(.event=="labeled" and .label.name=="${LABEL_NAME}").actor.login' | tail -n1)
-          
-          # 检查标签添加者是否为授权用户
-          if [[ "$LABEL_ADDER" != "$AUTHORIZED_USER" ]]; then
-            echo "Label was not added by authorized user: $LABEL_ADDER"
-            # 删除标签
-            gh api repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/labels/${LABEL_NAME} -X DELETE
-          else
-            echo "Label was added by authorized user: $LABEL_ADDER"
-          fi
   check-label:
     runs-on: ubuntu-latest
     steps:
@@ -38,10 +12,8 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const requiredLabel = 'gate_check_pass'; // 替换为你的标签名称
+            const requiredLabel = 'required-label'; // 替换为你的标签名称
             const labels = context.payload.pull_request.labels.map(label => label.name);
             if (!labels.includes(requiredLabel)) {
               throw new Error(`PR 必须包含标签: ${requiredLabel}`);
             }
-
-

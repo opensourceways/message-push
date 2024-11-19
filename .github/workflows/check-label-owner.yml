@@ -1,0 +1,41 @@
+name: Check Label Owner
+
+on:
+  issues:
+    types:
+      - labeled  # 监听标签添加事件
+
+permissions:
+  issues: write  # 需要对 issue 标签进行修改权限
+  contents: read
+
+jobs:
+  check-label-owner:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check if label was added by authorized user
+        env:
+          GITHUB_TOKEN: ${{ secrets.OWNER_TOKEN }}
+          LABEL_NAME: "gate_check_pass"  # 替换为你想监控的标签名称
+          AUTHORIZED_USER: "shishupei"  # 替换为指定用户的 GitHub 登录名
+        run: |
+          # 获取事件信息
+          EVENT_DATA=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "${{ github.event.issue.url }}/events")
+          
+          # 获取最近的 "labeled" 事件，并筛选出标签和操作者
+          LABEL_ADDER=$(echo "$EVENT_DATA" | jq -r \
+            '.[] | select(.event == "labeled" and .label.name == env.LABEL_NAME) | .actor.login' | tail -n 1)
+          
+          # 检查标签是否由授权用户添加
+          if [[ "$LABEL_ADDER" != "$AUTHORIZED_USER" ]]; then
+            echo "Label '$LABEL_NAME' was not added by authorized user '$AUTHORIZED_USER'. Removing it."
+            # 删除标签
+            curl -s -X DELETE -H "Authorization: Bearer $GITHUB_TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              "${{ github.event.issue.url }}/labels/$LABEL_NAME"
+          else
+            echo "Label '$LABEL_NAME' was added by authorized user '$AUTHORIZED_USER'. No action needed."
+          fi
