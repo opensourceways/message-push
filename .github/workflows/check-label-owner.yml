@@ -18,7 +18,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.OWNER_TOKEN }}
           LABEL_NAME: "gate_check_pass"  # 替换为需要检查的标签名称
-          AUTHORIZED_USER: "shishupei"  # 替换为被授权添加标签的用户
+          AUTHORIZED_USER: "sss"  # 替换为被授权添加标签的用户
         run: |
           # 提取仓库信息
           REPO_OWNER="${{ github.repository_owner }}"
@@ -30,8 +30,7 @@ jobs:
                         -H "Accept: application/vnd.github+json" \
                         "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/issues/$ISSUE_NUMBER/events")
           
-          # 调试输出返回的数据
-          echo "Events fetched: $EVENTS"
+ 
           
           # 筛选 'labeled' 事件并找到与指定标签匹配的记录
           LABEL_ADDER=$(echo "$EVENTS" | jq -r \
