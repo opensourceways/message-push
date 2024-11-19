@@ -12,7 +12,7 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const requiredLabel = 'required-label'; // 替换为你的标签名称
+            const requiredLabel = 'gate_check_pass'; // 替换为你的标签名称
             const labels = context.payload.pull_request.labels.map(label => label.name);
             if (!labels.includes(requiredLabel)) {
               throw new Error(`PR 必须包含标签: ${requiredLabel}`);

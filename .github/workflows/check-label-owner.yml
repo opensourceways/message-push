@@ -1,13 +1,9 @@
 name: Check Label Owner
 
 on:
-  issues:
+  pull_request:
     types:
       - labeled  # 监听标签添加事件
-
-permissions:
-  issues: write  # 需要对 issue 标签进行修改权限
-  contents: read
 
 jobs:
   check-label-owner:
