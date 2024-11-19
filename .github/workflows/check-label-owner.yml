@@ -2,12 +2,8 @@ name: Check PR Label Owner
 
 on:
   pull_request:
-    types:
-      - labeled  # 当 PR 被添加标签时触发
+    types: [labeled]
 
-permissions:
-  pull-requests: write  # 允许修改 PR 标签
-  contents: read
 
 jobs:
   verify-label-owner:
