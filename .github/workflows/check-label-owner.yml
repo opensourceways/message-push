@@ -19,8 +19,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.OWNER_TOKEN }}
           TARGET_LABEL: "gate_check_pass"  # 替换为需要检查的标签名称
           AUTHORIZED_USER: "shishupei"  # 替换为允许添加标签的 bot 用户名
+          LABEL_NAME: ${{ github.event.label.name }}
+          LABEL_USER: ${{ github.event.sender.login }}
         run: |
-          $LABEL_NAME=${{ github.event.label.name }}
           
             # 检查是否有相关事件
           if [[ "$LABEL_NAME" != "$TARGET_LABEL"  ]]; then
@@ -28,13 +29,7 @@ jobs:
             exit 0
           fi
           
-          # 检查触发人
-          LABEL_USER=${{ github.event.sender.login }}
-          
-          # 检查触发人是否是指定人
-        
-          
-          # 检查最近的标签操作者是否为授权 bot 用户
+          # 检查最近的标签操作者是否为授权用户
           if [[ "LABEL_USER" != "$AUTHORIZED_USER" ]]; then
             echo "Label '$LABEL_NAME' was added by 'LABEL_USER', not '$AUTHORIZED_USER'. Removing it."
           
