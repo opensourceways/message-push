@@ -16,41 +16,32 @@ jobs:
     steps:
       - name: Check if the label was added by the bot
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          LABEL_NAME: "gate_check_pass"  # 替换为需要检查的标签名称
+          GITHUB_TOKEN: ${{ secrets.OWNER_TOKEN }}
+          TARGET_LABEL: "gate_check_pass"  # 替换为需要检查的标签名称
           AUTHORIZED_USER: "shishupei"  # 替换为允许添加标签的 bot 用户名
         run: |
-          # 提取仓库信息
-          REPO_OWNER="${{ github.repository_owner }}"
-          REPO_NAME="${{ github.event.repository.name }}"
-          PR_NUMBER="${{ github.event.pull_request.number }}"
+          $LABEL_NAME=${{ github.event.label.name }}
           
-          # 获取 PR 的事件历史
-          EVENTS=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
-                        -H "Accept: application/vnd.github+json" \
-                        "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/issues/$PR_NUMBER/events")
-          
-    
-          
-          # 筛选与指定标签相关的 'labeled' 事件，按时间排序
-          LABEL_ADDER=$(echo "$EVENTS" | jq -r \
-            --arg LABEL_NAME "$LABEL_NAME" \
-            '.[] | select(.event == "labeled" and .label.name == $LABEL_NAME) | .actor.login' | tail -n 1)
-          
-          # 检查是否有相关事件
-          if [[ -z "$LABEL_ADDER" ]]; then
-            echo "No labeled event found for the label '$LABEL_NAME'. Exiting."
+            # 检查是否有相关事件
+          if [[ "$LABEL_NAME" != "$TARGET_LABEL"  ]]; then
+            echo "No labeled event found for the label '$TARGET_LABEL'. Exiting."
             exit 0
           fi
           
+          # 检查触发人
+          LABEL_USER=${{ github.event.sender.login }}
+          
+          # 检查触发人是否是指定人
+        
+          
           # 检查最近的标签操作者是否为授权 bot 用户
-          if [[ "$LABEL_ADDER" != "$AUTHORIZED_USER" ]]; then
-            echo "Label '$LABEL_NAME' was added by '$LABEL_ADDER', not '$AUTHORIZED_USER'. Removing it."
+          if [[ "LABEL_USER" != "$AUTHORIZED_USER" ]]; then
+            echo "Label '$LABEL_NAME' was added by 'LABEL_USER', not '$AUTHORIZED_USER'. Removing it."
           
             # 删除标签
             curl -s -X DELETE -H "Authorization: Bearer $GITHUB_TOKEN" \
                               -H "Accept: application/vnd.github+json" \
-                              "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/issues/$PR_NUMBER/labels/$LABEL_NAME"
+                              "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/issues/$PR_NUMBER/labels/$TARGET_LABEL"
           else
-            echo "Label '$LABEL_NAME' was added by the authorized bot '$AUTHORIZED_USER'. No action needed."
+            echo "Label '$TARGET_LABEL' was added by the authorized bot '$AUTHORIZED_USER'. No action needed."
           fi
