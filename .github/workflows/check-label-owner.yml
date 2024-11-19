@@ -3,10 +3,10 @@ name: Check PR Label Owner
 on:
   pull_request:
     types:
-      - labeled  # 当 PR 被添加标签时触发
+      - labeled  # 触发条件：PR 被添加标签时
 
 permissions:
-  pull-requests: write  # 修改 PR 标签需要的权限
+  pull-requests: write  # 允许修改 PR 标签
   contents: read
 
 jobs:
@@ -14,28 +14,38 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check if label was added by authorized user
+      - name: Check if the label was added by the authorized user
         env:
           GITHUB_TOKEN: ${{ secrets.OWNER_TOKEN }}
-          LABEL_NAME: "gate_check_pass"  # 替换为你要检查的标签名称
-          AUTHORIZED_USER: "shishupei"  # 替换为被授权添加标签的用户名
+          LABEL_NAME: "gate-check-pass"  # 替换为需要检查的标签名称
+          AUTHORIZED_USER: "shishupei"  # 替换为被授权添加标签的用户
         run: |
-          # 获取最近的 PR 事件列表
-          EVENT_DATA=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
-            -H "Accept: application/vnd.github+json" \
-            "${{ github.event.pull_request.url }}/events")
+          # 获取 PR 的事件历史记录
+          EVENTS=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+                        -H "Accept: application/vnd.github+json" \
+                        "${{ github.event.pull_request.url }}/events")
           
-          # 筛选出最近的 'labeled' 事件，匹配指定标签，并获取操作者用户名
-          LABEL_ADDER=$(echo "$EVENT_DATA" | jq -r \
+          # 调试输出返回的数据
+          echo "Events fetched: $EVENTS"
+          
+          # 筛选 'labeled' 事件并找到与指定标签匹配的记录
+          LABEL_ADDER=$(echo "$EVENTS" | jq -r \
             '.[] | select(.event == "labeled" and .label.name == env.LABEL_NAME) | .actor.login' | tail -n 1)
           
-          # 如果标签的添加者不是授权用户，则删除标签
+          # 如果没有找到标签事件，打印错误并退出
+          if [[ -z "$LABEL_ADDER" ]]; then
+            echo "No labeled event found for the label '$LABEL_NAME'. Exiting."
+            exit 1
+          fi
+          
+          # 检查添加者是否为授权用户
           if [[ "$LABEL_ADDER" != "$AUTHORIZED_USER" ]]; then
-            echo "Label '$LABEL_NAME' was not added by authorized user '$AUTHORIZED_USER'. Removing it."
-            curl -X DELETE \
-              -H "Authorization: token ${{ secrets.OWNER_TOKEN }}" \
-              -H "Accept: application/vnd.github.v3+json" \
-              https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels/$LABEL_NAME
+            echo "Label '$LABEL_NAME' was added by '$LABEL_ADDER', not '$AUTHORIZED_USER'. Removing it."
+          
+            # 删除标签
+            curl -s -X DELETE -H "Authorization: Bearer $GITHUB_TOKEN" \
+                              -H "Accept: application/vnd.github+json" \
+                              "${{ github.event.pull_request.url }}/labels/$LABEL_NAME"
           else
-            echo "Label '$LABEL_NAME' was added by authorized user '$AUTHORIZED_USER'. No action needed."
+            echo "Label '$LABEL_NAME' was added by the authorized user '$AUTHORIZED_USER'. No action needed."
           fi
