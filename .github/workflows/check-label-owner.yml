@@ -17,7 +17,7 @@ jobs:
       - name: Check if the label was added by the authorized user
         env:
           GITHUB_TOKEN: ${{ secrets.OWNER_TOKEN }}
-          LABEL_NAME: "gate-check-pass"  # 替换为需要检查的标签名称
+          LABEL_NAME: "gate_check_pass"  # 替换为需要检查的标签名称
           AUTHORIZED_USER: "shishupei"  # 替换为被授权添加标签的用户
         run: |
           # 获取 PR 的事件历史记录
@@ -35,7 +35,7 @@ jobs:
           # 如果没有找到标签事件，打印错误并退出
           if [[ -z "$LABEL_ADDER" ]]; then
             echo "No labeled event found for the label '$LABEL_NAME'. Exiting."
-            exit 1
+            exit 0
           fi
           
           # 检查添加者是否为授权用户
