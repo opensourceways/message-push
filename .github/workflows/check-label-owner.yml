@@ -18,7 +18,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.OWNER_TOKEN }}
           LABEL_NAME: "gate_check_pass"  # 替换为你要检查的标签名称
-          AUTHORIZED_USER: "shishupei"  # 替换为被授权添加标签的用户名
+          AUTHORIZED_USER: "ssss"  # 替换为被授权添加标签的用户名
         run: |
           # 获取最近的 PR 事件列表
           EVENT_DATA=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
