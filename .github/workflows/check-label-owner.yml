@@ -1,9 +1,13 @@
-name: Check Label Owner
+name: Check PR Label Owner
 
 on:
   pull_request:
     types:
-      - labeled  # 监听标签添加事件
+      - labeled  # 当 PR 被添加标签时触发
+
+permissions:
+  pull-requests: write  # 修改 PR 标签需要的权限
+  contents: read
 
 jobs:
   check-label-owner:
@@ -13,25 +17,24 @@ jobs:
       - name: Check if label was added by authorized user
         env:
           GITHUB_TOKEN: ${{ secrets.OWNER_TOKEN }}
-          LABEL_NAME: "gate_check_pass"  # 替换为你想监控的标签名称
-          AUTHORIZED_USER: "shishupei"  # 替换为指定用户的 GitHub 登录名
+          LABEL_NAME: "your-label-name"  # 替换为你要检查的标签名称
+          AUTHORIZED_USER: "authorized-user"  # 替换为被授权添加标签的用户名
         run: |
-          # 获取事件信息
+          # 获取最近的 PR 事件列表
           EVENT_DATA=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
             -H "Accept: application/vnd.github+json" \
-            "${{ github.event.issue.url }}/events")
+            "${{ github.event.pull_request.url }}/events")
           
-          # 获取最近的 "labeled" 事件，并筛选出标签和操作者
+          # 筛选出最近的 'labeled' 事件，匹配指定标签，并获取操作者用户名
           LABEL_ADDER=$(echo "$EVENT_DATA" | jq -r \
             '.[] | select(.event == "labeled" and .label.name == env.LABEL_NAME) | .actor.login' | tail -n 1)
           
-          # 检查标签是否由授权用户添加
+          # 如果标签的添加者不是授权用户，则删除标签
           if [[ "$LABEL_ADDER" != "$AUTHORIZED_USER" ]]; then
             echo "Label '$LABEL_NAME' was not added by authorized user '$AUTHORIZED_USER'. Removing it."
-            # 删除标签
             curl -s -X DELETE -H "Authorization: Bearer $GITHUB_TOKEN" \
               -H "Accept: application/vnd.github+json" \
-              "${{ github.event.issue.url }}/labels/$LABEL_NAME"
+              "${{ github.event.pull_request.url }}/labels/$LABEL_NAME"
           else
             echo "Label '$LABEL_NAME' was added by authorized user '$AUTHORIZED_USER'. No action needed."
           fi
