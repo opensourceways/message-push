@@ -1,7 +1,4 @@
-echo "Iterating over parameters:"
-for arg in "$@"; do
-  echo "$arg"
-done
+echo "$6"
 
 IAM_DATA=$(cat <<EOF
 {
@@ -47,7 +44,7 @@ DATA=$(cat <<EOF
     "params" : {
       "git_type" : "github",
       "default_branch" : "main",
-      "git_url" : "6",
+      "git_url" : "$6",
       "endpoint_id" : "$5",
       "build_params" : {
         "build_type" : "branch",
