@@ -1,4 +1,3 @@
-echo "$6"
 
 IAM_DATA=$(cat <<EOF
 {
