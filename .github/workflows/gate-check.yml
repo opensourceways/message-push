@@ -33,4 +33,4 @@ jobs:
               -d '{"body": "开始门禁检查，等门禁检查通过后可以合入"}'
 
       - name: RUN CodeArts Pipeline
-        run: ./.github/script/codearts_check.sh $GITHUB_HEAD_REF ${{ github.event.pull_request.number }}  ${{ secrets.CODEARTS_PASSWORD }} ${{ secrets.CODEARTS_PIPELINE }} ${{ secrets.CODEARTS_ENDPOINT_ID }}
+        run: ./.github/script/codearts_check.sh $GITHUB_HEAD_REF ${{ github.event.pull_request.number }}  ${{ secrets.CODEARTS_PASSWORD }} ${{ secrets.CODEARTS_PIPELINE }} ${{ secrets.CODEARTS_ENDPOINT_ID }} ${{ env.GITHUB_SERVER_URL }}/${{ env.GITHUB_REPOSITORY }}.git ${GITHUB_REPOSITORY%/*} ${GITHUB_REPOSITORY##*/}

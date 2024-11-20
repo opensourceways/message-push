@@ -1,3 +1,5 @@
+echo "All parameters using \$*: $*"
+
 IAM_DATA=$(cat <<EOF
 {
     "auth": {
@@ -41,8 +43,8 @@ DATA=$(cat <<EOF
     "type" : "code",
     "params" : {
       "git_type" : "github",
-      "default_branch" : "feture_experence",
-      "git_url" : "https://github.com/opensourceways/message-push.git",
+      "default_branch" : "main",
+      "git_url" : "6",
       "endpoint_id" : "$5",
       "build_params" : {
         "build_type" : "branch",
@@ -54,11 +56,11 @@ DATA=$(cat <<EOF
   "description" : "运行描述",
   "variables" : [ {
     "name" : "repo",
-    "value" : "message-push"
+    "value" : "$8"
   } ,
   {
     "name" : "owner",
-    "value" : "opensourceways"
+    "value" : "$7"
   }
   ,
   {
