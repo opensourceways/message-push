@@ -1,4 +1,7 @@
-echo "All parameters using \$*: $*"
+echo "Iterating over parameters:"
+for arg in "$@"; do
+  echo "$arg"
+done
 
 IAM_DATA=$(cat <<EOF
 {
