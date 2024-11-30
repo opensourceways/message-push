@@ -13,6 +13,10 @@ type InnerMessageDO struct {
 	IsSpecial   bool   `gorm:"column:is_special"`
 }
 
+func (m *InnerMessageDO) TableName() string {
+	return "message_center.inner_message"
+}
+
 type TodoMessageDO struct {
 	postgresql.CommonModel
 	EventId     string `gorm:"column:event_id"`
@@ -23,6 +27,18 @@ type TodoMessageDO struct {
 	IsDone      bool   `gorm:"column:is_done"`
 }
 
-func (m *InnerMessageDO) TableName() string {
-	return "message_center.inner_message"
+func (m *TodoMessageDO) TableName() string {
+	return "message_center.todo_message"
+}
+
+type FollowMessageDO struct {
+	postgresql.CommonModel
+	EventId     string `gorm:"column:event_id"`
+	Source      string `gorm:"column:source"`
+	RecipientId string `gorm:"column:recipient_id"`
+	IsRead      bool   `gorm:"column:is_read"`
+}
+
+func (m *FollowMessageDO) TableName() string {
+	return "message_center.follow_message"
 }

@@ -218,3 +218,36 @@ func (event CloudEvents) SendTodoMessage(recipient bo.RecipientPushConfig) PushR
 	}
 	return SaveTodoDb(todoMessageDO)
 }
+
+func SaveFollowDb(m do.FollowMessageDO) PushResult {
+	res := postgresql.DB().Save(&m)
+	if res.Error != nil {
+		return PushResult{
+			Res:         Failed,
+			Time:        time.Now(),
+			Remark:      res.Error.Error(),
+			RecipientId: m.RecipientId,
+			PushType:    "follow message",
+			PushAddress: "",
+		}
+	} else {
+		return PushResult{
+			Res:         Succeed,
+			Time:        time.Now(),
+			Remark:      "succeed",
+			RecipientId: m.RecipientId,
+			PushType:    "follow message",
+			PushAddress: "",
+		}
+	}
+}
+
+func (event CloudEvents) SendFollowMessage(recipient bo.RecipientPushConfig) PushResult {
+	followMessageDO := do.FollowMessageDO{
+		EventId:     event.ID(),
+		Source:      event.Source(),
+		RecipientId: recipient.RecipientId,
+		IsRead:      false,
+	}
+	return SaveFollowDb(followMessageDO)
+}

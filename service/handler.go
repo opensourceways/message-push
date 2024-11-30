@@ -179,6 +179,23 @@ func HandleTodo(event dto.CloudEvents) error {
 }
 
 func HandleFollow(event dto.CloudEvents) error {
+	raw := make(dto.Raw)
+	raw.FromJson(event.Data())
+	recipients := event.GetFollowFromDB()
+	if recipients == nil || len(recipients) == 0 {
+		return nil
+	}
+	flatRaw := raw.Flatten()
+	processedInnerRecipients := make(map[string]struct{}) // 用于追踪已处理的接收者
+
+	// 遍历接收者
+	stream.Of(recipients...).ForEach(func(item bo.RecipientPushConfig) {
+		recipientKey := item.RecipientId
+		if _, exists := processedInnerRecipients[recipientKey]; !exists {
+			HandleFollowMessage(event, flatRaw, item)
+			processedInnerRecipients[recipientKey] = struct{}{} // 标记为已处理
+		}
+	})
 	return nil
 }
 
@@ -202,6 +219,17 @@ func HandleTodoMessage(event dto.CloudEvents, flatRaw dto.FlatRaw,
 		logrus.Info(sendTodoMessageLog, event.ID(), "failed")
 	} else {
 		logrus.Info(sendTodoMessageLog, event.ID(), "success")
+	}
+	insertData(event, flatRaw, res)
+}
+
+func HandleFollowMessage(event dto.CloudEvents, flatRaw dto.FlatRaw, pushConfig bo.RecipientPushConfig) {
+	res := sendFollowMessage(event, pushConfig)
+	sendFollowMessageLog := "send inner message %s %s"
+	if res.Res == dto.Failed {
+		logrus.Info(sendFollowMessageLog, event.ID(), "failed")
+	} else {
+		logrus.Info(sendFollowMessageLog, event.ID(), "success")
 	}
 	insertData(event, flatRaw, res)
 }
@@ -250,6 +278,10 @@ func sendInnerMessage(event dto.CloudEvents, recipient bo.RecipientPushConfig) d
 
 func sendTodoMessage(event dto.CloudEvents, recipient bo.RecipientPushConfig) dto.PushResult {
 	return event.SendTodoMessage(recipient)
+}
+
+func sendFollowMessage(event dto.CloudEvents, recipient bo.RecipientPushConfig) dto.PushResult {
+	return event.SendFollowMessage(recipient)
 }
 
 func sendMail(event dto.CloudEvents, recipient bo.RecipientPushConfig, emailConfig pushSdk.EmailConfig) dto.PushResult {
