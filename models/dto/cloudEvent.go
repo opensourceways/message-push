@@ -122,6 +122,9 @@ func (event CloudEvents) GetRelatedFromDB() []bo.RecipientPushConfig {
 }
 
 func (event CloudEvents) GetTodoFromDB() []bo.RecipientPushConfig {
+	if event.Extensions()["todousers"] == nil {
+		return nil
+	}
 	todoUsers := strings.Split(event.Extensions()["todousers"].(string), ",")
 	var todoPushConfigs []bo.RecipientPushConfig
 	postgresql.DB().Raw(
