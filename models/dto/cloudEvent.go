@@ -92,7 +92,7 @@ func (event CloudEvents) GetRecipient() []bo.RecipientPushConfig {
 func mergeRecipient(subscribe []bo.RecipientPushConfig, related []bo.RecipientPushConfig) []bo.RecipientPushConfig {
 	var unique []string
 	subs := stream.Of(subscribe...).Distinct(func(item bo.
-	RecipientPushConfig) any {
+		RecipientPushConfig) any {
 		return fmt.Sprintf("%s:%v", item.RecipientId, item.ModeFilter)
 	}).ToSlice()
 	for _, sub := range subs {
@@ -151,6 +151,9 @@ func (event CloudEvents) GetFollowFromDB() []bo.RecipientPushConfig {
 }
 
 func (event CloudEvents) GetSubscribeFromDB() []bo.RecipientPushConfig {
+	if event.Extensions()["releatedUsers"] == nil {
+		return nil
+	}
 	relatedUsers := strings.Split(event.Extensions()["releatedUsers"].(string), ",")
 	var subscribePushConfigs []bo.RecipientPushConfig
 	postgresql.DB().Raw(
