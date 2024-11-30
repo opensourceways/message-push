@@ -92,7 +92,7 @@ func (event CloudEvents) GetRecipient() []bo.RecipientPushConfig {
 func mergeRecipient(subscribe []bo.RecipientPushConfig, related []bo.RecipientPushConfig) []bo.RecipientPushConfig {
 	var unique []string
 	subs := stream.Of(subscribe...).Distinct(func(item bo.
-		RecipientPushConfig) any {
+	RecipientPushConfig) any {
 		return fmt.Sprintf("%s:%v", item.RecipientId, item.ModeFilter)
 	}).ToSlice()
 	for _, sub := range subs {
@@ -112,10 +112,10 @@ func mergeRecipient(subscribe []bo.RecipientPushConfig, related []bo.RecipientPu
 }
 
 func (event CloudEvents) GetRelatedFromDB() []bo.RecipientPushConfig {
-	if event.Extensions()["relatedusers"] == nil {
+	if event.Extensions()["releatedUsers"] == nil {
 		return nil
 	}
-	relatedUsers := strings.Split(event.Extensions()["relatedusers"].(string), ",")
+	relatedUsers := strings.Split(event.Extensions()["releatedUsers"].(string), ",")
 	var subscribePushConfigs []bo.RecipientPushConfig
 	postgresql.DB().Raw(
 		related_sql,
@@ -125,10 +125,10 @@ func (event CloudEvents) GetRelatedFromDB() []bo.RecipientPushConfig {
 }
 
 func (event CloudEvents) GetTodoFromDB() []bo.RecipientPushConfig {
-	if event.Extensions()["todousers"] == nil {
+	if event.Extensions()["todoUsers"] == nil {
 		return nil
 	}
-	todoUsers := strings.Split(event.Extensions()["todousers"].(string), ",")
+	todoUsers := strings.Split(event.Extensions()["todoUsers"].(string), ",")
 	var todoPushConfigs []bo.RecipientPushConfig
 	postgresql.DB().Raw(
 		related_sql,
@@ -138,7 +138,7 @@ func (event CloudEvents) GetTodoFromDB() []bo.RecipientPushConfig {
 }
 
 func (event CloudEvents) GetFollowFromDB() []bo.RecipientPushConfig {
-	if event.Extensions()["todousers"] == nil {
+	if event.Extensions()["followUsers"] == nil {
 		return nil
 	}
 	followUsers := strings.Split(event.Extensions()["followUsers"].(string), ",")
@@ -151,7 +151,7 @@ func (event CloudEvents) GetFollowFromDB() []bo.RecipientPushConfig {
 }
 
 func (event CloudEvents) GetSubscribeFromDB() []bo.RecipientPushConfig {
-	relatedUsers := strings.Split(event.Extensions()["relatedusers"].(string), ",")
+	relatedUsers := strings.Split(event.Extensions()["releatedUsers"].(string), ",")
 	var subscribePushConfigs []bo.RecipientPushConfig
 	postgresql.DB().Raw(
 		subscribe_sql,
