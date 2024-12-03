@@ -112,10 +112,10 @@ func mergeRecipient(subscribe []bo.RecipientPushConfig, related []bo.RecipientPu
 }
 
 func (event CloudEvents) GetRelatedFromDB() []bo.RecipientPushConfig {
-	if event.Extensions()["releatedUsers"] == nil {
+	if event.Extensions()["releatedusers"] == nil {
 		return nil
 	}
-	relatedUsers := strings.Split(event.Extensions()["releatedUsers"].(string), ",")
+	relatedUsers := strings.Split(event.Extensions()["releatedusers"].(string), ",")
 	var subscribePushConfigs []bo.RecipientPushConfig
 	postgresql.DB().Raw(
 		related_sql,
@@ -125,10 +125,10 @@ func (event CloudEvents) GetRelatedFromDB() []bo.RecipientPushConfig {
 }
 
 func (event CloudEvents) GetTodoFromDB() []bo.RecipientPushConfig {
-	if event.Extensions()["todoUsers"] == nil {
+	if event.Extensions()["todousers"] == nil {
 		return nil
 	}
-	todoUsers := strings.Split(event.Extensions()["todoUsers"].(string), ",")
+	todoUsers := strings.Split(event.Extensions()["todousers"].(string), ",")
 	var todoPushConfigs []bo.RecipientPushConfig
 	postgresql.DB().Raw(
 		related_sql,
@@ -138,10 +138,10 @@ func (event CloudEvents) GetTodoFromDB() []bo.RecipientPushConfig {
 }
 
 func (event CloudEvents) GetFollowFromDB() []bo.RecipientPushConfig {
-	if event.Extensions()["followUsers"] == nil {
+	if event.Extensions()["followusers"] == nil {
 		return nil
 	}
-	followUsers := strings.Split(event.Extensions()["followUsers"].(string), ",")
+	followUsers := strings.Split(event.Extensions()["followusers"].(string), ",")
 	var followPushConfigs []bo.RecipientPushConfig
 	postgresql.DB().Raw(
 		related_sql,
@@ -151,10 +151,10 @@ func (event CloudEvents) GetFollowFromDB() []bo.RecipientPushConfig {
 }
 
 func (event CloudEvents) GetSubscribeFromDB() []bo.RecipientPushConfig {
-	if event.Extensions()["releatedUsers"] == nil {
+	if event.Extensions()["releatedusers"] == nil {
 		return nil
 	}
-	relatedUsers := strings.Split(event.Extensions()["releatedUsers"].(string), ",")
+	relatedUsers := strings.Split(event.Extensions()["releatedusers"].(string), ",")
 	var subscribePushConfigs []bo.RecipientPushConfig
 	postgresql.DB().Raw(
 		subscribe_sql,
