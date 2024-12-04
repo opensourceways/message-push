@@ -22,8 +22,7 @@ type TodoMessageDO struct {
 	BusinessId  string `gorm:"column:business_id"`
 	Source      string `gorm:"column:source"`
 	RecipientId string `gorm:"column:recipient_id"`
-	IsRead      bool   `gorm:"column:is_read"`
-	IsSpecial   bool   `gorm:"column:is_special"`
+	LastEventId string `gorm:"column:last_event_id"`
 	IsDone      bool   `gorm:"column:is_done"`
 }
 

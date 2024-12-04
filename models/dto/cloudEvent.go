@@ -226,7 +226,7 @@ func (event CloudEvents) SendTodoMessage(recipient bo.RecipientPushConfig) PushR
 		BusinessId:  event.Extensions()["businessid"].(string),
 		Source:      event.Source(),
 		RecipientId: recipient.RecipientId,
-		IsRead:      false,
+		LastEventId: event.ID(),
 		IsDone:      event.Extensions()["isdone"].(bool),
 	}
 	return SaveTodoDb(todoMessageDO)
