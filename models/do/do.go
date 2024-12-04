@@ -19,7 +19,7 @@ func (m *InnerMessageDO) TableName() string {
 
 type TodoMessageDO struct {
 	postgresql.CommonModel
-	EventId     string `gorm:"column:event_id"`
+	BusinessId  string `gorm:"column:business_id"`
 	Source      string `gorm:"column:source"`
 	RecipientId string `gorm:"column:recipient_id"`
 	IsRead      bool   `gorm:"column:is_read"`
