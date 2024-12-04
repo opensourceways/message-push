@@ -112,41 +112,44 @@ func mergeRecipient(subscribe []bo.RecipientPushConfig, related []bo.RecipientPu
 }
 
 func (event CloudEvents) GetRelatedFromDB() []bo.RecipientPushConfig {
-	if event.Extensions()["releatedusers"] == nil {
+	relatedUsers, ok := event.Extensions()["releatedusers"].(string)
+	if !ok || relatedUsers == "" {
 		return nil
 	}
-	relatedUsers := strings.Split(event.Extensions()["releatedusers"].(string), ",")
+	relatedUsersList := strings.Split(relatedUsers, ",")
 	var subscribePushConfigs []bo.RecipientPushConfig
 	postgresql.DB().Raw(
 		related_sql,
-		relatedUsers, relatedUsers, relatedUsers, relatedUsers, relatedUsers,
+		relatedUsersList, relatedUsersList, relatedUsersList, relatedUsersList, relatedUsersList,
 	).Scan(&subscribePushConfigs)
 	return subscribePushConfigs
 }
 
 func (event CloudEvents) GetTodoFromDB() []bo.RecipientPushConfig {
 	logrus.Infof("todousers : %v", event.Extensions()["todousers"])
-	if event.Extensions()["todousers"] == nil {
+	todoUsers, ok := event.Extensions()["todousers"].(string)
+	if !ok || todoUsers == "" {
 		return nil
 	}
-	todoUsers := strings.Split(event.Extensions()["todousers"].(string), ",")
+	todoUsersList := strings.Split(todoUsers, ",")
 	var todoPushConfigs []bo.RecipientPushConfig
 	postgresql.DB().Raw(
 		related_sql,
-		todoUsers, todoUsers, todoUsers, todoUsers, todoUsers,
+		todoUsersList, todoUsersList, todoUsersList, todoUsersList, todoUsersList,
 	).Scan(&todoPushConfigs)
 	return todoPushConfigs
 }
 
 func (event CloudEvents) GetFollowFromDB() []bo.RecipientPushConfig {
-	if event.Extensions()["followusers"] == nil {
+	followUsers, ok := event.Extensions()["followusers"].(string)
+	if !ok || followUsers == "" {
 		return nil
 	}
-	followUsers := strings.Split(event.Extensions()["followusers"].(string), ",")
+	followUsersList := strings.Split(followUsers, ",")
 	var followPushConfigs []bo.RecipientPushConfig
 	postgresql.DB().Raw(
 		related_sql,
-		followUsers, followUsers, followUsers, followUsers, followUsers,
+		followUsersList, followUsersList, followUsersList, followUsersList, followUsersList,
 	).Scan(&followPushConfigs)
 	return followPushConfigs
 }
@@ -222,8 +225,12 @@ func SaveTodoDb(m do.TodoMessageDO) PushResult {
 }
 
 func (event CloudEvents) SendTodoMessage(recipient bo.RecipientPushConfig) PushResult {
+	businessid, ok := event.Extensions()["businessid"].(string)
+	if !ok || businessid == "" {
+		businessid = ""
+	}
 	todoMessageDO := do.TodoMessageDO{
-		BusinessId:    event.Extensions()["businessid"].(string),
+		BusinessId:    businessid,
 		Source:        event.Source(),
 		RecipientId:   recipient.RecipientId,
 		LatestEventId: event.ID(),
