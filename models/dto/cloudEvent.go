@@ -92,7 +92,7 @@ func (event CloudEvents) GetRecipient() []bo.RecipientPushConfig {
 func mergeRecipient(subscribe []bo.RecipientPushConfig, related []bo.RecipientPushConfig) []bo.RecipientPushConfig {
 	var unique []string
 	subs := stream.Of(subscribe...).Distinct(func(item bo.
-		RecipientPushConfig) any {
+	RecipientPushConfig) any {
 		return fmt.Sprintf("%s:%v", item.RecipientId, item.ModeFilter)
 	}).ToSlice()
 	for _, sub := range subs {
@@ -223,11 +223,11 @@ func SaveTodoDb(m do.TodoMessageDO) PushResult {
 
 func (event CloudEvents) SendTodoMessage(recipient bo.RecipientPushConfig) PushResult {
 	todoMessageDO := do.TodoMessageDO{
-		BusinessId:  event.Extensions()["businessid"].(string),
-		Source:      event.Source(),
-		RecipientId: recipient.RecipientId,
-		LastEventId: event.ID(),
-		IsDone:      event.Extensions()["isdone"].(bool),
+		BusinessId:    event.Extensions()["businessid"].(string),
+		Source:        event.Source(),
+		RecipientId:   recipient.RecipientId,
+		LatestEventId: event.ID(),
+		IsDone:        event.Extensions()["isdone"].(bool),
 	}
 	return SaveTodoDb(todoMessageDO)
 }
