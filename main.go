@@ -21,17 +21,17 @@ func main() {
 	log := logrus.NewEntry(logrus.StandardLogger())
 
 	cfg, o := initConfig()
-
+	logrus.Infof("Postgresql is %v", &cfg.Postgresql)
 	if err := postgresql.Init(&cfg.Postgresql, false); err != nil {
 		logrus.Errorf("init postgresql failed, err:%s", err.Error())
 		return
 	}
-
+	logrus.Infof("Kafka is %v", &cfg.Kafka)
 	if err := kafka.Init(&cfg.Kafka, log, false); err != nil {
 		logrus.Errorf("init kafka failed, err:%s", err.Error())
 		return
 	}
-
+	logrus.Infof("cassandra is %v", &cfg.Cassandra)
 	if err := cassandra.Init(&cfg.Cassandra); err != nil {
 		logrus.Errorf("init cassandra failed, err:%s", err.Error())
 		return
