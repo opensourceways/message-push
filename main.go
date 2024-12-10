@@ -12,7 +12,6 @@ import (
 	"github.com/opensourceways/message-push/common/kafka"
 	"github.com/opensourceways/message-push/common/postgresql"
 	"github.com/opensourceways/message-push/config"
-	"github.com/opensourceways/message-push/service"
 	"github.com/opensourceways/message-push/utils"
 )
 
@@ -41,10 +40,10 @@ func main() {
 	//	config.InitGiteeConfig(o.GiteeConfig)
 	//	service.SubscribeGiteeEvent()
 	//}()
-	go func() {
-		config.InitMeetingConfig(o.MeetingConfig)
-		service.SubscribeMeetingEvent()
-	}()
+	//go func() {
+	//	config.InitMeetingConfig(o.MeetingConfig)
+	//	service.SubscribeMeetingEvent()
+	//}()
 	logrus.Infof("the program is running")
 	//	go func() {
 	//		config.InitCVEConfig(o.CVEConfig)
