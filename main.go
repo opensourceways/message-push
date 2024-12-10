@@ -5,33 +5,30 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/opensourceways/message-push/common/cassandra"
 	"github.com/opensourceways/server-common-lib/logrusutil"
 	"github.com/sirupsen/logrus"
 
-	"github.com/opensourceways/message-push/common/kafka"
-	"github.com/opensourceways/message-push/common/postgresql"
 	"github.com/opensourceways/message-push/config"
 	"github.com/opensourceways/message-push/utils"
 )
 
 func main() {
 	logrusutil.ComponentInit("message-push")
-	log := logrus.NewEntry(logrus.StandardLogger())
+	//log := logrus.NewEntry(logrus.StandardLogger())
 
-	cfg, _ := initConfig()
-	if err := postgresql.Init(&cfg.Postgresql, false); err != nil {
-		logrus.Errorf("init postgresql failed, err:%s", err.Error())
-		return
-	}
-	if err := kafka.Init(&cfg.Kafka, log, false); err != nil {
-		logrus.Errorf("init kafka failed, err:%s", err.Error())
-		return
-	}
-	if err := cassandra.Init(&cfg.Cassandra); err != nil {
-		logrus.Errorf("init cassandra failed, err:%s", err.Error())
-		return
-	}
+	//cfg, _ := initConfig()
+	//if err := postgresql.Init(&cfg.Postgresql, false); err != nil {
+	//	logrus.Errorf("init postgresql failed, err:%s", err.Error())
+	//	return
+	//}
+	//if err := kafka.Init(&cfg.Kafka, log, false); err != nil {
+	//	logrus.Errorf("init kafka failed, err:%s", err.Error())
+	//	return
+	//}
+	//if err := cassandra.Init(&cfg.Cassandra); err != nil {
+	//	logrus.Errorf("init cassandra failed, err:%s", err.Error())
+	//	return
+	//}
 	//go func() {
 	//	config.InitEurBuildConfig(o.EurBuildConfig)
 	//	service.SubscribeEurEvent()
