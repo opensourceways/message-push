@@ -3,17 +3,12 @@ package main
 import (
 	"flag"
 	"fmt"
-	"os"
 
-	"github.com/opensourceways/server-common-lib/logrusutil"
 	"github.com/sirupsen/logrus"
-
-	"github.com/opensourceways/message-push/config"
-	"github.com/opensourceways/message-push/utils"
 )
 
 func main() {
-	logrusutil.ComponentInit("message-push")
+	//logrusutil.ComponentInit("message-push")
 	//log := logrus.NewEntry(logrus.StandardLogger())
 
 	//cfg, _ := initConfig()
@@ -53,22 +48,21 @@ func main() {
 	//	select {}
 }
 
-func initConfig() (*config.Config, *Options) {
-	o, err := gatherOptions(
-		flag.NewFlagSet(os.Args[0], flag.ExitOnError),
-		os.Args[1:]...,
-	)
-	if err != nil {
-		logrus.Fatalf("new Options failed, err:%s", err.Error())
-	}
-	cfg := new(config.Config)
-
-	if err := utils.LoadFromYaml(o.Config, cfg); err != nil {
-		logrus.Error("Config初始化失败, err:", err)
-	}
-	config.InitMeetingConfig(o.MeetingConfig)
-	return cfg, &o
-}
+//func initConfig() (*config.Config, *Options) {
+//	o, err := gatherOptions(
+//		flag.NewFlagSet(os.Args[0], flag.ExitOnError),
+//		os.Args[1:]...,
+//	)
+//	if err != nil {
+//		logrus.Fatalf("new Options failed, err:%s", err.Error())
+//	}
+//	cfg := new(config.Config)
+//
+//	if err := utils.LoadFromYaml(o.Config, cfg); err != nil {
+//		logrus.Error("Config初始化失败, err:", err)
+//	}
+//	return cfg, &o
+//}
 
 /*
 获取启动参数，配置文件地址由启动参数传入
