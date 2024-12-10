@@ -47,7 +47,7 @@ func OpenEulerMeetingHandle(payload []byte, _ map[string]string) error {
 	if msgBodyErr != nil {
 		return msgBodyErr
 	}
-	err := HandleAll(event, config.MeetingConfigInstance.Push)
+	err := HandleAll(event, config.PushConfig{})
 	if err != nil {
 		return err
 	}
@@ -258,7 +258,7 @@ func HandleMail(event dto.CloudEvents, flatRaw dto.FlatRaw, pushConfig bo.Recipi
 		} else {
 			logrus.Infof(sendMailLog, event.ID(), "success", pushConfig.Mail)
 		}
-		//insertData(event, flatRaw, res)
+		insertData(event, flatRaw, res)
 	}
 }
 
