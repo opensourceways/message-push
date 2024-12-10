@@ -27,7 +27,6 @@ const (
 // LoadFromYaml reads a YAML file from the given path and unmarshals it into the provided interface.
 func LoadFromYaml(path string, cfg interface{}) error {
 	b, err := os.ReadFile(path) // #nosec G304
-	logrus.Errorf("the file content is %v", string(b))
 	if err != nil {
 		return err
 	}
