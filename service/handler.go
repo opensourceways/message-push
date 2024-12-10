@@ -208,7 +208,7 @@ func HandleInnerMessage(event dto.CloudEvents, flatRaw dto.FlatRaw,
 	} else {
 		logrus.Info(sendInnerMessageLog, event.ID(), "success")
 	}
-	insertData(event, flatRaw, res)
+	//insertData(event, flatRaw, res)
 }
 
 func HandleTodoMessage(event dto.CloudEvents, flatRaw dto.FlatRaw,
@@ -220,7 +220,7 @@ func HandleTodoMessage(event dto.CloudEvents, flatRaw dto.FlatRaw,
 	} else {
 		logrus.Info(sendTodoMessageLog, event.ID(), "success")
 	}
-	insertData(event, flatRaw, res)
+	//insertData(event, flatRaw, res)
 }
 
 func HandleFollowMessage(event dto.CloudEvents, flatRaw dto.FlatRaw, pushConfig bo.RecipientPushConfig) {
@@ -231,7 +231,7 @@ func HandleFollowMessage(event dto.CloudEvents, flatRaw dto.FlatRaw, pushConfig 
 	} else {
 		logrus.Info(sendFollowMessageLog, event.ID(), "success")
 	}
-	insertData(event, flatRaw, res)
+	//insertData(event, flatRaw, res)
 }
 
 func HandleMessage(event dto.CloudEvents, raw dto.Raw, flatRaw dto.FlatRaw,
@@ -244,7 +244,7 @@ func HandleMessage(event dto.CloudEvents, raw dto.Raw, flatRaw dto.FlatRaw,
 		} else {
 			logrus.Info(sendMessageLog, event.ID(), "success", pushConfig.Message)
 		}
-		insertData(event, flatRaw, res)
+		//insertData(event, flatRaw, res)
 	}
 }
 
@@ -258,7 +258,7 @@ func HandleMail(event dto.CloudEvents, flatRaw dto.FlatRaw, pushConfig bo.Recipi
 		} else {
 			logrus.Infof(sendMailLog, event.ID(), "success", pushConfig.Mail)
 		}
-		insertData(event, flatRaw, res)
+		//insertData(event, flatRaw, res)
 	}
 }
 
