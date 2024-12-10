@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/opensourceways/message-push/common/cassandra"
 	"github.com/opensourceways/server-common-lib/logrusutil"
 	"github.com/sirupsen/logrus"
 
@@ -32,10 +31,10 @@ func main() {
 		return
 	}
 
-	if err := cassandra.Init(&cfg.Cassandra); err != nil {
-		logrus.Errorf("init cassandra failed, err:%s", err.Error())
-		return
-	}
+	//if err := cassandra.Init(&cfg.Cassandra); err != nil {
+	//	logrus.Errorf("init cassandra failed, err:%s", err.Error())
+	//	return
+	//}
 	//go func() {
 	//	config.InitEurBuildConfig(o.EurBuildConfig)
 	//	service.SubscribeEurEvent()
