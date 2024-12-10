@@ -41,10 +41,10 @@ func main() {
 	//	config.InitGiteeConfig(o.GiteeConfig)
 	//	service.SubscribeGiteeEvent()
 	//}()
-	go func() {
-		config.InitMeetingConfig(o.MeetingConfig)
-		service.SubscribeMeetingEvent()
-	}()
+
+	config.InitMeetingConfig(o.MeetingConfig)
+	service.SubscribeMeetingEvent()
+
 	logrus.Infof("the program is running")
 	//	go func() {
 	//		config.InitCVEConfig(o.CVEConfig)
