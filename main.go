@@ -19,7 +19,7 @@ func main() {
 	logrusutil.ComponentInit("message-push")
 	log := logrus.NewEntry(logrus.StandardLogger())
 
-	cfg, o := initConfig()
+	cfg, _ := initConfig()
 	if err := postgresql.Init(&cfg.Postgresql, false); err != nil {
 		logrus.Errorf("init postgresql failed, err:%s", err.Error())
 		return
@@ -69,6 +69,7 @@ func initConfig() (*config.Config, *Options) {
 	if err := utils.LoadFromYaml(o.Config, cfg); err != nil {
 		logrus.Error("Config初始化失败, err:", err)
 	}
+	config.InitMeetingConfig(o.MeetingConfig)
 	return cfg, &o
 }
 
