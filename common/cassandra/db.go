@@ -11,6 +11,7 @@ var (
 )
 
 func Init(cfg *Config) error {
+	return nil
 	cluster := gocql.NewCluster(cfg.Host) // Cassandra节点的IP地址
 	cluster.Keyspace = cfg.KeySpace       // 替换为你的Keyspace名称
 	cluster.Port = cfg.Port
