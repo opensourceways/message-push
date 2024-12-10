@@ -14,6 +14,7 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"github.com/sirupsen/logrus"
 	"sigs.k8s.io/yaml"
 )
 
@@ -27,6 +28,7 @@ const (
 func LoadFromYaml(path string, cfg interface{}) error {
 	b, err := os.ReadFile(path) // #nosec G304
 	if err != nil {
+		logrus.Errorf("the err is %v", err)
 		return err
 	}
 

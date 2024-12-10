@@ -47,7 +47,7 @@ func OpenEulerMeetingHandle(payload []byte, _ map[string]string) error {
 	if msgBodyErr != nil {
 		return msgBodyErr
 	}
-	err := HandleAll(event, config.PushConfig{})
+	err := HandleAll(event, config.MeetingConfigInstance.Push)
 	if err != nil {
 		return err
 	}

@@ -11,7 +11,7 @@ var MeetingConfigInstance MeetingConfig
 
 type MeetingConfig struct {
 	Kafka kafka.ConsumeConfig `yaml:"kafka"`
-	//Push  PushConfig          `yaml:"push"`
+	Push  PushConfig          `yaml:"push"`
 }
 
 func InitMeetingConfig(configFile string) {
