@@ -11,5 +11,5 @@ type Config struct {
 	User     string `json:"user"     required:"true"`
 	Pwd      string `json:"pwd"      required:"true"`
 	Port     int    `json:"port"     required:"true"`
-	KeySpace string `json:"keySpace"     required:"true"`
+	KeySpace string `json:"keyspace"     required:"true"`
 }
