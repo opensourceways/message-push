@@ -112,7 +112,7 @@ func mergeRecipient(subscribe []bo.RecipientPushConfig, related []bo.RecipientPu
 }
 
 func (event CloudEvents) GetRelatedFromDB() []bo.RecipientPushConfig {
-	relatedUsers, ok := event.Extensions()["releatedusers"].(string)
+	relatedUsers, ok := event.Extensions()["relatedusers"].(string)
 	if !ok || relatedUsers == "" {
 		return nil
 	}
@@ -154,10 +154,10 @@ func (event CloudEvents) GetFollowFromDB() []bo.RecipientPushConfig {
 }
 
 func (event CloudEvents) GetSubscribeFromDB() []bo.RecipientPushConfig {
-	if event.Extensions()["releatedusers"] == nil {
+	if event.Extensions()["relatedusers"] == nil {
 		return nil
 	}
-	relatedUsers := strings.Split(event.Extensions()["releatedusers"].(string), ",")
+	relatedUsers := strings.Split(event.Extensions()["relatedusers"].(string), ",")
 	var subscribePushConfigs []bo.RecipientPushConfig
 	postgresql.DB().Raw(
 		subscribe_sql,
