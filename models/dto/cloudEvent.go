@@ -92,7 +92,7 @@ func (event CloudEvents) GetRecipient() []bo.RecipientPushConfig {
 func mergeRecipient(subscribe []bo.RecipientPushConfig, related []bo.RecipientPushConfig) []bo.RecipientPushConfig {
 	var unique []string
 	subs := stream.Of(subscribe...).Distinct(func(item bo.
-	RecipientPushConfig) any {
+		RecipientPushConfig) any {
 		return fmt.Sprintf("%s:%v", item.RecipientId, item.ModeFilter)
 	}).ToSlice()
 	for _, sub := range subs {
@@ -113,6 +113,7 @@ func mergeRecipient(subscribe []bo.RecipientPushConfig, related []bo.RecipientPu
 
 func (event CloudEvents) GetRelatedFromDB() []bo.RecipientPushConfig {
 	relatedUsers, ok := event.Extensions()["relatedusers"].(string)
+	logrus.Infof("relatedUsers :%v", relatedUsers)
 	if !ok || relatedUsers == "" {
 		return nil
 	}
