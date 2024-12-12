@@ -73,12 +73,6 @@ type CloudEvents struct {
 	cloudevents.Event
 }
 
-func NewCloudEvents() CloudEvents {
-	return CloudEvents{
-		Event: cloudevents.NewEvent(cloudevents.VersionV1),
-	}
-}
-
 func (event CloudEvents) Message() ([]byte, error) {
 	return json.Marshal(event)
 }
@@ -92,7 +86,7 @@ func (event CloudEvents) GetRecipient() []bo.RecipientPushConfig {
 func mergeRecipient(subscribe []bo.RecipientPushConfig, related []bo.RecipientPushConfig) []bo.RecipientPushConfig {
 	var unique []string
 	subs := stream.Of(subscribe...).Distinct(func(item bo.
-		RecipientPushConfig) any {
+	RecipientPushConfig) any {
 		return fmt.Sprintf("%s:%v", item.RecipientId, item.ModeFilter)
 	}).ToSlice()
 	for _, sub := range subs {
@@ -112,7 +106,7 @@ func mergeRecipient(subscribe []bo.RecipientPushConfig, related []bo.RecipientPu
 }
 
 func (event CloudEvents) GetRelatedFromDB() []bo.RecipientPushConfig {
-	relatedUsers, ok := event.Extensions()["releatedusers"].(string)
+	relatedUsers, ok := event.Extensions()["relatedusers"].(string)
 	if !ok || relatedUsers == "" {
 		return nil
 	}
@@ -154,10 +148,10 @@ func (event CloudEvents) GetFollowFromDB() []bo.RecipientPushConfig {
 }
 
 func (event CloudEvents) GetSubscribeFromDB() []bo.RecipientPushConfig {
-	if event.Extensions()["releatedusers"] == nil {
+	if event.Extensions()["relatedusers"] == nil {
 		return nil
 	}
-	relatedUsers := strings.Split(event.Extensions()["releatedusers"].(string), ",")
+	relatedUsers := strings.Split(event.Extensions()["relatedusers"].(string), ",")
 	var subscribePushConfigs []bo.RecipientPushConfig
 	postgresql.DB().Raw(
 		subscribe_sql,
