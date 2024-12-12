@@ -73,6 +73,12 @@ type CloudEvents struct {
 	cloudevents.Event
 }
 
+func NewCloudEvents() CloudEvents {
+	return CloudEvents{
+		Event: cloudevents.NewEvent(cloudevents.VersionV1),
+	}
+}
+
 func (event CloudEvents) Message() ([]byte, error) {
 	return json.Marshal(event)
 }
