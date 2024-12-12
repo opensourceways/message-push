@@ -92,7 +92,7 @@ func (event CloudEvents) GetRecipient() []bo.RecipientPushConfig {
 func mergeRecipient(subscribe []bo.RecipientPushConfig, related []bo.RecipientPushConfig) []bo.RecipientPushConfig {
 	var unique []string
 	subs := stream.Of(subscribe...).Distinct(func(item bo.
-	RecipientPushConfig) any {
+		RecipientPushConfig) any {
 		return fmt.Sprintf("%s:%v", item.RecipientId, item.ModeFilter)
 	}).ToSlice()
 	for _, sub := range subs {
@@ -126,7 +126,6 @@ func (event CloudEvents) GetRelatedFromDB() []bo.RecipientPushConfig {
 }
 
 func (event CloudEvents) GetTodoFromDB() []bo.RecipientPushConfig {
-	logrus.Infof("todousers : %v", event.Extensions()["todousers"])
 	todoUsers, ok := event.Extensions()["todousers"].(string)
 	if !ok || todoUsers == "" {
 		return nil
@@ -229,12 +228,17 @@ func (event CloudEvents) SendTodoMessage(recipient bo.RecipientPushConfig) PushR
 	if !ok || businessid == "" {
 		businessid = ""
 	}
+	isDone, ok := event.Extensions()["isdone"].(bool)
+	if !ok {
+		isDone = false
+	}
+
 	todoMessageDO := do.TodoMessageDO{
 		BusinessId:    businessid,
 		Source:        event.Source(),
 		RecipientId:   recipient.RecipientId,
 		LatestEventId: event.ID(),
-		IsDone:        event.Extensions()["isdone"].(bool),
+		IsDone:        isDone,
 	}
 	return SaveTodoDb(todoMessageDO)
 }
