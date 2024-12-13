@@ -4,17 +4,16 @@ import (
 	"github.com/opensourceways/message-push/common/postgresql"
 )
 
-type InnerMessageDO struct {
+type RelatedMessageDO struct {
 	postgresql.CommonModel
 	EventId     string `gorm:"column:event_id"`
 	Source      string `gorm:"column:source"`
 	RecipientId string `gorm:"column:recipient_id"`
 	IsRead      bool   `gorm:"column:is_read"`
-	IsSpecial   bool   `gorm:"column:is_special"`
 }
 
-func (m *InnerMessageDO) TableName() string {
-	return "message_center.inner_message"
+func (m *RelatedMessageDO) TableName() string {
+	return "message_center.related_message"
 }
 
 type TodoMessageDO struct {

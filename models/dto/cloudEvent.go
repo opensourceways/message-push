@@ -167,7 +167,7 @@ func (event CloudEvents) GetSubscribeFromDB() []bo.RecipientPushConfig {
 	return subscribePushConfigs
 }
 
-func SaveDb(m do.InnerMessageDO) PushResult {
+func SaveDb(m do.RelatedMessageDO) PushResult {
 	res := postgresql.DB().Save(&m)
 	if res.Error != nil {
 		return PushResult{
@@ -175,7 +175,7 @@ func SaveDb(m do.InnerMessageDO) PushResult {
 			Time:        time.Now(),
 			Remark:      res.Error.Error(),
 			RecipientId: m.RecipientId,
-			PushType:    "inner message",
+			PushType:    "related message",
 			PushAddress: "",
 		}
 	} else {
@@ -184,19 +184,18 @@ func SaveDb(m do.InnerMessageDO) PushResult {
 			Time:        time.Now(),
 			Remark:      "succeed",
 			RecipientId: m.RecipientId,
-			PushType:    "inner message",
+			PushType:    "related message",
 			PushAddress: "",
 		}
 	}
 }
 
 func (event CloudEvents) SendInnerMessage(recipient bo.RecipientPushConfig) PushResult {
-	innerMessageDO := do.InnerMessageDO{
+	innerMessageDO := do.RelatedMessageDO{
 		EventId:     event.ID(),
 		Source:      event.Source(),
 		RecipientId: recipient.RecipientId,
 		IsRead:      false,
-		IsSpecial:   false,
 	}
 	return SaveDb(innerMessageDO)
 }
