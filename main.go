@@ -21,14 +21,17 @@ func main() {
 	log := logrus.NewEntry(logrus.StandardLogger())
 
 	cfg, o := initConfig()
+
 	if err := postgresql.Init(&cfg.Postgresql, false); err != nil {
 		logrus.Errorf("init postgresql failed, err:%s", err.Error())
 		return
 	}
+
 	if err := kafka.Init(&cfg.Kafka, log, false); err != nil {
 		logrus.Errorf("init kafka failed, err:%s", err.Error())
 		return
 	}
+
 	if err := cassandra.Init(&cfg.Cassandra); err != nil {
 		logrus.Errorf("init cassandra failed, err:%s", err.Error())
 		return
@@ -45,7 +48,6 @@ func main() {
 		config.InitMeetingConfig(o.MeetingConfig)
 		service.SubscribeMeetingEvent()
 	}()
-	logrus.Infof("the program is running")
 	go func() {
 		config.InitCVEConfig(o.CVEConfig)
 		service.SubscribeCVEEvent()

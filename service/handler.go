@@ -118,7 +118,6 @@ func HandleSubscribe(event dto.CloudEvents, push config.PushConfig) error {
 	stream.Of(recipients...).ForEach(func(item bo.RecipientPushConfig) {
 		recipientKey := item.RecipientId
 		if _, exists := processedRecipients[recipientKey]; !exists {
-			logrus.Infof("send email, %v, %v", item.NeedMail, item.Mail)
 			isFilter := flatRaw.ModeFilter(item.ModeFilter)
 			if isFilter {
 				HandleMail(event, flatRaw, item, push)
@@ -135,14 +134,12 @@ func HandleRelated(event dto.CloudEvents) error {
 	raw := make(dto.Raw)
 	raw.FromJson(event.Data())
 	recipients := event.GetRelatedFromDB()
-
 	if recipients == nil || len(recipients) == 0 {
 		return nil
 	}
 	logrus.SetFormatter(&logrus.JSONFormatter{
 		PrettyPrint: true, // 启用美化输出
 	})
-	logrus.Info(recipients)
 	flatRaw := raw.Flatten()
 	processedInnerRecipients := make(map[string]struct{}) // 用于追踪已处理的接收者
 
