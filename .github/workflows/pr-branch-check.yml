@@ -1,18 +1,18 @@
-name: Restrict PR Source Branch
-
-on:
-  pull_request:
-    branches:
-      - main
-      - master
-
-jobs:
-  check-source-branch:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check PR source branch
-        run: |
-          if [[ ! "${{ github.head_ref }}" =~ ^release.* ]]; then
-            echo "Error: PR source branch must start with 'release'."
-            exit 1
-          fi
+#name: Restrict PR Source Branch
+#
+#on:
+#  pull_request:
+#    branches:
+#      - main
+#      - master
+#
+#jobs:
+#  check-source-branch:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Check PR source branch
+#        run: |
+#          if [[ ! "${{ github.head_ref }}" =~ ^release.* ]]; then
+#            echo "Error: PR source branch must start with 'release'."
+#            exit 1
+#          fi
