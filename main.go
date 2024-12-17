@@ -56,6 +56,11 @@ func main() {
 		config.InitForumConfig(o.ForumConfig)
 		service.SubscribeForumEvent()
 	}()
+	go func() {
+		config.InitPublishConfig(o.PublishConfig)
+		service.SubscribePublishEvent()
+	}()
+
 	select {}
 }
 
@@ -93,6 +98,7 @@ type Options struct {
 	MeetingConfig  string
 	CVEConfig      string
 	ForumConfig    string
+	PublishConfig  string
 }
 
 func (o *Options) AddFlags(fs *flag.FlagSet) {
@@ -102,4 +108,5 @@ func (o *Options) AddFlags(fs *flag.FlagSet) {
 	fs.StringVar(&o.MeetingConfig, "meeting-config-file", "", "Path to meeting config file.")
 	fs.StringVar(&o.CVEConfig, "cve-config-file", "", "Path to cve config file.")
 	fs.StringVar(&o.ForumConfig, "forum-config-file", "", "Path to forum file.")
+	fs.StringVar(&o.PublishConfig, "publish-config-file", "", "Path to publish config file.")
 }

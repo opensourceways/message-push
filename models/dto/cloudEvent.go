@@ -166,6 +166,24 @@ func (event CloudEvents) GetSubscribeFromDB() []bo.RecipientPushConfig {
 	return subscribePushConfigs
 }
 
+func (event CloudEvents) GetAllRecipientFromDB() []bo.RecipientPushConfig {
+	var subscribePushConfigs []bo.RecipientPushConfig
+	query := `select distinct id       recipient_id,
+                mail,
+                message,
+                phone,
+                null::jsonb as mode_filter,
+                false as need_message,
+                false as need_phone,
+                false as need_mail,
+                false  as need_inner_message,
+                null  as message_template,
+                null  as mail_template
+	from message_center.recipient_config`
+	postgresql.DB().Raw(query).Scan(&subscribePushConfigs)
+	return subscribePushConfigs
+}
+
 func SaveDb(m do.RelatedMessageDO) PushResult {
 	res := postgresql.DB().Save(&m)
 	if res.Error != nil {

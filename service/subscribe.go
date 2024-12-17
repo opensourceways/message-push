@@ -31,3 +31,8 @@ func SubscribeForumEvent() {
 	logrus.Infof("subscribing to forum topic")
 	_ = kfklib.Subscribe(config.ForumConfigInstance.Kafka.Group, ForumHandle, []string{config.ForumConfigInstance.Kafka.Topic})
 }
+
+func SubscribePublishEvent() {
+	logrus.Infof("subscribing to publish topic")
+	_ = kfklib.Subscribe(config.PublishConfigInstance.Kafka.Group, PublishHandle, []string{config.PublishConfigInstance.Kafka.Topic})
+}

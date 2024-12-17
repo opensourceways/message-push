@@ -81,6 +81,19 @@ func ForumHandle(payload []byte, _ map[string]string) error {
 	return nil
 }
 
+func PublishHandle(payload []byte, _ map[string]string) error {
+	event := dto.NewCloudEvents()
+	msgBodyErr := json.Unmarshal(payload, &event)
+	if msgBodyErr != nil {
+		return msgBodyErr
+	}
+	err := HandleAllUser(event, config.PublishConfigInstance.Push)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func HandleAll(event dto.CloudEvents, push config.PushConfig) error {
 	err := HandleRelated(event)
 	if err != nil {
@@ -98,6 +111,31 @@ func HandleAll(event dto.CloudEvents, push config.PushConfig) error {
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func HandleAllUser(event dto.CloudEvents, push config.PushConfig) error {
+	raw := make(dto.Raw)
+	raw.FromJson(event.Data())
+	recipients := event.GetAllRecipientFromDB()
+
+	if recipients == nil || len(recipients) == 0 {
+		return nil
+	}
+	logrus.SetFormatter(&logrus.JSONFormatter{
+		PrettyPrint: true,
+	})
+	flatRaw := raw.Flatten()
+	processedInnerRecipients := make(map[string]struct{})
+
+	// 遍历接收者
+	stream.Of(recipients...).ForEach(func(item bo.RecipientPushConfig) {
+		recipientKey := item.RecipientId
+		if _, exists := processedInnerRecipients[recipientKey]; !exists {
+			HandleFollowMessage(event, flatRaw, item)
+			processedInnerRecipients[recipientKey] = struct{}{} // 标记为已处理
+		}
+	})
 	return nil
 }
 
