@@ -14,6 +14,8 @@ type CVEConfig struct {
 	Push  PushConfig          `yaml:"push"`
 }
 
+const name = 2
+
 func InitCVEConfig(configFile string) {
 	cfg := new(CVEConfig)
 	if err := utils.LoadFromYaml(configFile, cfg); err != nil {
