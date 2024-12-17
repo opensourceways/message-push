@@ -14,7 +14,7 @@ type CVEConfig struct {
 	Push  PushConfig          `yaml:"push"`
 }
 
-const name = 1
+const name = 2
 
 func InitCVEConfig(configFile string) {
 	cfg := new(CVEConfig)
