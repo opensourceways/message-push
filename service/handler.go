@@ -47,6 +47,7 @@ func OpenEulerMeetingHandle(payload []byte, _ map[string]string) error {
 	if msgBodyErr != nil {
 		return msgBodyErr
 	}
+	logrus.Infof("receive meeting msg")
 	err := HandleAll(event, config.MeetingConfigInstance.Push)
 	if err != nil {
 		return err
@@ -158,6 +159,7 @@ func HandleTodo(event dto.CloudEvents) error {
 	raw := make(dto.Raw)
 	raw.FromJson(event.Data())
 	recipients := event.GetTodoFromDB()
+	logrus.Infof("recipient is %v", recipients)
 	if recipients == nil || len(recipients) == 0 {
 		return nil
 	}
