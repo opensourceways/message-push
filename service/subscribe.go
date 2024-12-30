@@ -14,20 +14,32 @@ func SubscribeEurEvent() {
 
 func SubscribeGiteeEvent() {
 	logrus.Info("subscribing to gitee topic")
-	_ = kfklib.Subscribe(config.GiteeConfigInstance.Kafka.Issue.Group, GiteeHandle, []string{config.GiteeConfigInstance.Kafka.Issue.Topic, config.GiteeConfigInstance.Kafka.Push.Topic, config.GiteeConfigInstance.Kafka.PR.Topic, config.GiteeConfigInstance.Kafka.Note.Topic})
+	_ = kfklib.Subscribe(config.GiteeConfigInstance.Kafka.Issue.Group, GiteeHandle,
+		[]string{config.GiteeConfigInstance.Kafka.Issue.Topic,
+			config.GiteeConfigInstance.Kafka.Push.Topic, config.GiteeConfigInstance.Kafka.PR.
+				Topic, config.GiteeConfigInstance.Kafka.Note.Topic})
 }
 
 func SubscribeMeetingEvent() {
 	logrus.Info("subscribing to meeting topic")
-	_ = kfklib.Subscribe(config.MeetingConfigInstance.Kafka.Group, OpenEulerMeetingHandle, []string{config.MeetingConfigInstance.Kafka.Topic})
+	_ = kfklib.Subscribe(config.MeetingConfigInstance.Kafka.Group, OpenEulerMeetingHandle,
+		[]string{config.MeetingConfigInstance.Kafka.Topic})
 }
 
 func SubscribeCVEEvent() {
 	logrus.Info("subscribing to cve topic")
-	_ = kfklib.Subscribe(config.CVEConfigInstance.Kafka.Group, CVEHandle, []string{config.CVEConfigInstance.Kafka.Topic})
+	_ = kfklib.Subscribe(config.CVEConfigInstance.Kafka.Group, CVEHandle,
+		[]string{config.CVEConfigInstance.Kafka.Topic})
 }
 
 func SubscribeForumEvent() {
 	logrus.Infof("subscribing to forum topic")
-	_ = kfklib.Subscribe(config.ForumConfigInstance.Kafka.Group, ForumHandle, []string{config.ForumConfigInstance.Kafka.Topic})
+	_ = kfklib.Subscribe(config.ForumConfigInstance.Kafka.Group, ForumHandle,
+		[]string{config.ForumConfigInstance.Kafka.Topic})
+}
+
+func SubscribeCertificationEvent() {
+	logrus.Infof("subscribing to certification topic")
+	_ = kfklib.Subscribe(config.CertificationConfigInstance.Kafka.Group, CertificationHandle,
+		[]string{config.CertificationConfigInstance.Kafka.Topic})
 }

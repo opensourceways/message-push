@@ -56,6 +56,10 @@ func main() {
 		config.InitForumConfig(o.ForumConfig)
 		service.SubscribeForumEvent()
 	}()
+	go func() {
+		config.InitCertificationConfig(o.CertificationConfig)
+		service.SubscribeCertificationEvent()
+	}()
 	select {}
 }
 
@@ -87,12 +91,13 @@ func gatherOptions(fs *flag.FlagSet, args ...string) (Options, error) {
 }
 
 type Options struct {
-	Config         string
-	EurBuildConfig string
-	GiteeConfig    string
-	MeetingConfig  string
-	CVEConfig      string
-	ForumConfig    string
+	Config              string
+	EurBuildConfig      string
+	GiteeConfig         string
+	MeetingConfig       string
+	CVEConfig           string
+	ForumConfig         string
+	CertificationConfig string
 }
 
 func (o *Options) AddFlags(fs *flag.FlagSet) {
@@ -102,4 +107,5 @@ func (o *Options) AddFlags(fs *flag.FlagSet) {
 	fs.StringVar(&o.MeetingConfig, "meeting-config-file", "", "Path to meeting config file.")
 	fs.StringVar(&o.CVEConfig, "cve-config-file", "", "Path to cve config file.")
 	fs.StringVar(&o.ForumConfig, "forum-config-file", "", "Path to forum file.")
+	fs.StringVar(&o.CertificationConfig, "certification-config-file", "", "Path to certification config file.")
 }
