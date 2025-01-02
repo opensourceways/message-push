@@ -10,6 +10,7 @@ import (
 	cloudevents "github.com/cloudevents/sdk-go/v2"
 	"github.com/sirupsen/logrus"
 	"github.com/todocoder/go-stream/stream"
+	"gorm.io/gorm/clause"
 
 	"github.com/opensourceways/message-push/common/postgresql"
 	"github.com/opensourceways/message-push/models/bo"
@@ -92,7 +93,7 @@ func (event CloudEvents) GetRecipient() []bo.RecipientPushConfig {
 func mergeRecipient(subscribe []bo.RecipientPushConfig, related []bo.RecipientPushConfig) []bo.RecipientPushConfig {
 	var unique []string
 	subs := stream.Of(subscribe...).Distinct(func(item bo.
-		RecipientPushConfig) any {
+	RecipientPushConfig) any {
 		return fmt.Sprintf("%s:%v", item.RecipientId, item.ModeFilter)
 	}).ToSlice()
 	for _, sub := range subs {
@@ -201,7 +202,10 @@ func (event CloudEvents) SendInnerMessage(recipient bo.RecipientPushConfig) Push
 }
 
 func SaveTodoDb(m do.TodoMessageDO) PushResult {
-	res := postgresql.DB().Save(&m)
+	res := postgresql.DB().Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "business_id"}, {Name: "recipient_id"}, {Name: "source"}},
+		DoUpdates: clause.AssignmentColumns([]string{"latest_event_id", "is_done", "updated_at"}),
+	}).Create(&m)
 	if res.Error != nil {
 		return PushResult{
 			Res:         Failed,
