@@ -80,6 +80,19 @@ func ForumHandle(payload []byte, _ map[string]string) error {
 	return nil
 }
 
+func CertificationHandle(payload []byte, _ map[string]string) error {
+	event := dto.NewCloudEvents()
+	msgBodyErr := json.Unmarshal(payload, &event)
+	if msgBodyErr != nil {
+		return msgBodyErr
+	}
+	err := HandleAll(event, config.CertificationConfigInstance.Push)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func HandleAll(event dto.CloudEvents, push config.PushConfig) error {
 	err := HandleRelated(event)
 	if err != nil {
