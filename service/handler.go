@@ -110,6 +110,10 @@ func HandleAll(event dto.CloudEvents, push config.PushConfig) error {
 	if err != nil {
 		return err
 	}
+	err = HandleApply(event)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -209,6 +213,28 @@ func HandleFollow(event dto.CloudEvents) error {
 	return nil
 }
 
+func HandleApply(event dto.CloudEvents) error {
+	raw := make(dto.Raw)
+	raw.FromJson(event.Data())
+	recipients := event.GetApplyFromDB()
+	if recipients == nil || len(recipients) == 0 {
+		return nil
+	}
+	flatRaw := raw.Flatten()
+	processedInnerRecipients := make(map[string]struct{}) // 用于追踪已处理的接收者
+
+	// 遍历接收者
+	stream.Of(recipients...).ForEach(func(item bo.RecipientPushConfig) {
+		recipientKey := item.RecipientId
+		if _, exists := processedInnerRecipients[recipientKey]; !exists {
+			HandleApplyMessage(event, flatRaw, item)
+			processedInnerRecipients[recipientKey] = struct{}{} // 标记为已处理
+		}
+	})
+	return nil
+
+}
+
 func HandleInnerMessage(event dto.CloudEvents, flatRaw dto.FlatRaw,
 	pushConfig bo.RecipientPushConfig) {
 	res := sendInnerMessage(event, pushConfig)
@@ -240,6 +266,18 @@ func HandleFollowMessage(event dto.CloudEvents, flatRaw dto.FlatRaw, pushConfig 
 		logrus.Info(sendFollowMessageLog, event.ID(), "failed")
 	} else {
 		logrus.Info(sendFollowMessageLog, event.ID(), "success")
+	}
+	insertData(event, flatRaw, res)
+}
+
+func HandleApplyMessage(event dto.CloudEvents, flatRaw dto.FlatRaw,
+	pushConfig bo.RecipientPushConfig) {
+	res := sendApplyMessage(event, pushConfig)
+	sendApplyMessageLog := "send inner message %s %s"
+	if res.Res == dto.Failed {
+		logrus.Info(sendApplyMessageLog, event.ID(), "failed")
+	} else {
+		logrus.Info(sendApplyMessageLog, event.ID(), "success")
 	}
 	insertData(event, flatRaw, res)
 }
@@ -292,6 +330,10 @@ func sendTodoMessage(event dto.CloudEvents, recipient bo.RecipientPushConfig) dt
 
 func sendFollowMessage(event dto.CloudEvents, recipient bo.RecipientPushConfig) dto.PushResult {
 	return event.SendFollowMessage(recipient)
+}
+
+func sendApplyMessage(event dto.CloudEvents, recipient bo.RecipientPushConfig) dto.PushResult {
+	return event.SendApplyMessage(recipient)
 }
 
 func sendMail(event dto.CloudEvents, recipient bo.RecipientPushConfig, emailConfig pushSdk.EmailConfig) dto.PushResult {

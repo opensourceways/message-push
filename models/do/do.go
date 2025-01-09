@@ -40,3 +40,16 @@ type FollowMessageDO struct {
 func (m *FollowMessageDO) TableName() string {
 	return "message_center.follow_message"
 }
+
+type ApplyMessageDO struct {
+	postgresql.CommonModel
+	BusinessId    string `gorm:"column:business_id"`
+	Source        string `gorm:"column:source"`
+	RecipientId   string `gorm:"column:recipient_id"`
+	LatestEventId string `gorm:"column:latest_event_id"`
+	IsDone        bool   `gorm:"column:is_done"`
+}
+
+func (m *ApplyMessageDO) TableName() string {
+	return "message_center.apply_message"
+}

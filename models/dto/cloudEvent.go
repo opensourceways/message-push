@@ -10,6 +10,7 @@ import (
 	cloudevents "github.com/cloudevents/sdk-go/v2"
 	"github.com/sirupsen/logrus"
 	"github.com/todocoder/go-stream/stream"
+	"gorm.io/gorm/clause"
 
 	"github.com/opensourceways/message-push/common/postgresql"
 	"github.com/opensourceways/message-push/models/bo"
@@ -167,6 +168,20 @@ func (event CloudEvents) GetSubscribeFromDB() []bo.RecipientPushConfig {
 	return subscribePushConfigs
 }
 
+func (event CloudEvents) GetApplyFromDB() []bo.RecipientPushConfig {
+	applyUsers, ok := event.Extensions()["applyusers"].(string)
+	if !ok || applyUsers == "" {
+		return nil
+	}
+	applyUsersList := strings.Split(applyUsers, ",")
+	var applyPushConfigs []bo.RecipientPushConfig
+	postgresql.DB().Raw(
+		related_sql,
+		applyUsersList, applyUsersList, applyUsersList, applyUsersList, applyUsersList,
+	).Scan(&applyPushConfigs)
+	return applyPushConfigs
+}
+
 func SaveDb(m do.RelatedMessageDO) PushResult {
 	res := postgresql.DB().Save(&m)
 	if res.Error != nil {
@@ -201,7 +216,10 @@ func (event CloudEvents) SendInnerMessage(recipient bo.RecipientPushConfig) Push
 }
 
 func SaveTodoDb(m do.TodoMessageDO) PushResult {
-	res := postgresql.DB().Save(&m)
+	res := postgresql.DB().Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "business_id"}, {Name: "recipient_id"}, {Name: "source"}},
+		DoUpdates: clause.AssignmentColumns([]string{"latest_event_id", "is_done", "updated_at"}),
+	}).Create(&m)
 	if res.Error != nil {
 		return PushResult{
 			Res:         Failed,
@@ -274,4 +292,50 @@ func (event CloudEvents) SendFollowMessage(recipient bo.RecipientPushConfig) Pus
 		IsRead:      false,
 	}
 	return SaveFollowDb(followMessageDO)
+}
+
+func SaveApplyDb(m do.ApplyMessageDO) PushResult {
+	res := postgresql.DB().Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "business_id"}, {Name: "recipient_id"}, {Name: "source"}},
+		DoUpdates: clause.AssignmentColumns([]string{"latest_event_id", "is_done", "updated_at"}),
+	}).Create(&m)
+	if res.Error != nil {
+		return PushResult{
+			Res:         Failed,
+			Time:        time.Now(),
+			Remark:      res.Error.Error(),
+			RecipientId: m.RecipientId,
+			PushType:    "apply message",
+			PushAddress: "",
+		}
+	} else {
+		return PushResult{
+			Res:         Succeed,
+			Time:        time.Now(),
+			Remark:      "succeed",
+			RecipientId: m.RecipientId,
+			PushType:    "apply message",
+			PushAddress: "",
+		}
+	}
+}
+
+func (event CloudEvents) SendApplyMessage(recipient bo.RecipientPushConfig) PushResult {
+	businessid, ok := event.Extensions()["businessid"].(string)
+	if !ok || businessid == "" {
+		businessid = ""
+	}
+	isDone, ok := event.Extensions()["isdone"].(bool)
+	if !ok {
+		isDone = false
+	}
+
+	applyMessageDO := do.ApplyMessageDO{
+		BusinessId:    businessid,
+		Source:        event.Source(),
+		RecipientId:   recipient.RecipientId,
+		LatestEventId: event.ID(),
+		IsDone:        isDone,
+	}
+	return SaveApplyDb(applyMessageDO)
 }
